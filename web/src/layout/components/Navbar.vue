@@ -14,6 +14,7 @@ const toggleDark = useToggle(isDark)
     <div class="flex items-center gap-4">
       <el-switch
         v-model="isDark"
+        class="theme-switch"
         inline-prompt
         :active-icon="'Moon'"
         :inactive-icon="'Sunny'"
@@ -22,3 +23,15 @@ const toggleDark = useToggle(isDark)
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 增强浅色模式下太阳图标的可见性 */
+:deep(.theme-switch:not(.is-checked) .el-switch__core .el-switch__inner .el-icon) {
+  color: #E6A23C; /* 橙色太阳 */
+}
+
+/* 深色模式下的月亮图标 */
+:deep(.theme-switch.is-checked .el-switch__core .el-switch__inner .el-icon) {
+  color: #F2F2F2; /* 浅色月亮 */
+}
+</style>

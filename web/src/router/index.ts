@@ -58,6 +58,12 @@ const routes: Array<RouteRecordRaw> = [
         name: 'Metadata',
         component: () => import('@/views/metadata/index.vue'),
         meta: { title: '元数据管理', icon: 'Setting', roles: ['admin'] }
+      },
+      {
+        path: 'users',
+        name: 'Users',
+        component: () => import('@/views/user/index.vue'),
+        meta: { title: '用户管理', icon: 'User', roles: ['admin'] }
       }
     ]
   },
