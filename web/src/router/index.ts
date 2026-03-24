@@ -64,6 +64,18 @@ const routes: Array<RouteRecordRaw> = [
         name: 'Users',
         component: () => import('@/views/user/index.vue'),
         meta: { title: '用户管理', icon: 'User', roles: ['admin'] }
+      },
+      {
+        path: 'system',
+        name: 'System',
+        component: () => import('@/views/system/index.vue'),
+        meta: { title: '系统设置', icon: 'Tools', roles: ['admin'] }
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/profile/index.vue'),
+        meta: { title: '个人中心', hidden: true }
       }
     ]
   },
@@ -81,7 +93,7 @@ const router = createRouter({
 })
 
 // Route Guard
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const userStore = useUserStore()
   const token = userStore.token
 
@@ -95,6 +107,16 @@ router.beforeEach((to, _from, next) => {
     if (!token) {
       next('/login')
     } else {
+      // Ensure user info is loaded
+      if (!userStore.userInfo.username) {
+        try {
+          await userStore.getUserInfo()
+        } catch (e) {
+          userStore.logout()
+          next('/login')
+          return
+        }
+      }
       // Check RBAC
       if (to.meta.roles) {
         const roles = to.meta.roles as string[]

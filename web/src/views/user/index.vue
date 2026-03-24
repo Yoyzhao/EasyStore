@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUsersStore } from '@/store/users'
 
 const usersStore = useUsersStore()
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleString('zh-CN', { hour12: false })
+}
+
+onMounted(() => {
+  usersStore.fetchUsers()
+})
 
 const dialogVisible = ref(false)
 const dialogTitle = ref('新增用户')
@@ -48,7 +58,7 @@ const handleEdit = (row: any) => {
   form.username = row.username
   form.password = '******' // Placeholder, won't update unless changed
   form.role = row.role
-  form.status = row.status
+  form.status = row.is_active ? 'active' : 'disabled'
   dialogVisible.value = true
 }
 
@@ -78,8 +88,9 @@ const handleSubmit = async () => {
       try {
         if (isEditing.value) {
           // Update
-          usersStore.updateUser(form.id, {
+          usersStore.updateUser(form.id as unknown as number, {
             username: form.username,
+            password: form.password,
             role: form.role,
             status: form.status
           })
@@ -88,6 +99,7 @@ const handleSubmit = async () => {
           // Create
           usersStore.addUser({
             username: form.username,
+            password: form.password,
             role: form.role,
             status: form.status
           })
@@ -120,14 +132,18 @@ const handleSubmit = async () => {
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="120">
+        <el-table-column prop="is_active" label="状态" width="120">
           <template #default="{ row }">
-            <el-tag :type="row.status === 'active' ? 'success' : 'info'" effect="plain">
-              {{ row.status === 'active' ? '正常' : '禁用' }}
+            <el-tag :type="row.is_active ? 'success' : 'info'" effect="plain">
+              {{ row.is_active ? '正常' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180" />
+        <el-table-column prop="created_at" label="创建时间" width="180">
+          <template #default="{ row }">
+            {{ formatDate(row.created_at) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="scope">
             <el-button size="small" :icon="Edit" @click="handleEdit(scope.row)">编辑</el-button>
@@ -151,7 +167,7 @@ const handleSubmit = async () => {
         <el-form-item label="用户名" prop="username">
           <el-input v-model="form.username" :disabled="isEditing && form.username === 'admin'" />
         </el-form-item>
-        <el-form-item label="密码" prop="password" v-if="!isEditing">
+        <el-form-item label="密码" prop="password">
            <el-input v-model="form.password" type="password" show-password />
         </el-form-item>
         <el-form-item label="角色" prop="role">

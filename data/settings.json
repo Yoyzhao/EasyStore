@@ -1,0 +1,12 @@
+{
+    "upload": {
+        "max_size_mb": 5,
+        "allowed_extensions": [
+            "jpg",
+            "jpeg",
+            "png",
+            "gif",
+            "webp"
+        ]
+    }
+}

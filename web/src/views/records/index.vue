@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { reactive, computed } from 'vue'
+import { reactive, computed, onMounted } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { useInventoryStore } from '@/store/inventory'
 
 const inventoryStore = useInventoryStore()
+
+onMounted(() => {
+  inventoryStore.fetchRecords()
+})
 
 const searchForm = reactive({
   keyword: '',
@@ -13,13 +17,22 @@ const searchForm = reactive({
 const tableData = computed(() => {
   return inventoryStore.records.map(record => ({
     ...record,
-    createdAt: record.time
-  }))
+    createdAt: new Date(record.time).toLocaleString(),
+    name: record.item_name
+  })).filter(record => {
+    let match = true
+    if (searchForm.keyword) {
+      match = match && record.name.includes(searchForm.keyword)
+    }
+    if (searchForm.type) {
+      match = match && record.type === searchForm.type
+    }
+    return match
+  })
 })
 
 const handleSearch = () => {
-  // Mock search logic
-  console.log('Search:', searchForm)
+  // handled by computed tableData
 }
 
 const handleReset = () => {

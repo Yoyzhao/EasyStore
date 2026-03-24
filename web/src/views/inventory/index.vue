@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, computed, ref } from 'vue'
+import { reactive, computed, ref, onMounted } from 'vue'
 import { Search, Plus, Edit, Delete, View } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { useInventoryStore } from '@/store/inventory'
@@ -8,9 +8,17 @@ import { storeToRefs } from 'pinia'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 
+import { uploadFile } from '@/api/request'
+
 const router = useRouter()
 const inventoryStore = useInventoryStore()
 const metadataStore = useMetadataStore()
+
+onMounted(() => {
+  inventoryStore.fetchItems()
+  inventoryStore.fetchRecords()
+  metadataStore.fetchMetadata()
+})
 
 const { categories, brands } = storeToRefs(metadataStore)
 
@@ -26,24 +34,24 @@ const detailVisible = ref(false)
 const currentItem = ref<any>(null)
 const itemRecords = computed(() => {
   if (!currentItem.value) return []
-  return inventoryStore.records.filter(r => r.itemId === currentItem.value.id)
+  return inventoryStore.records.filter(r => r.item_id === currentItem.value.id)
 })
 
 // 编辑相关
 const editVisible = ref(false)
 const editFormRef = ref<FormInstance>()
 const editForm = reactive({
-  id: '',
+  id: 0,
   name: '',
   category: '',
   brand: '',
   price: 0,
   unit: '',
-  lowStockThreshold: 0,
+  low_stock_threshold: 0,
   remark: '',
   imageType: 'link',
-  imageUrl: '',
-  itemLink: ''
+  image_url: '',
+  item_link: ''
 })
 
 const editRules: FormRules = {
@@ -51,18 +59,18 @@ const editRules: FormRules = {
   category: [{ required: true, message: '请选择分类', trigger: 'change' }],
   unit: [{ required: true, message: '请输入单位', trigger: 'blur' }],
   price: [{ required: true, message: '请输入单价', trigger: 'blur' }],
-  lowStockThreshold: [{ required: true, message: '请输入预警阈值', trigger: 'blur' }]
+  low_stock_threshold: [{ required: true, message: '请输入预警阈值', trigger: 'blur' }]
 }
 
 const handleSearch = () => {
-  // Mock search logic
-  console.log('Search:', searchForm)
+  inventoryStore.fetchItems(searchForm.keyword, searchForm.category)
 }
 
 const handleReset = () => {
   searchForm.keyword = ''
   searchForm.category = ''
   searchForm.brand = ''
+  inventoryStore.fetchItems()
 }
 
 const handleInbound = () => {
@@ -80,15 +88,15 @@ const handleEdit = (row: any) => {
   editForm.brand = row.brand || ''
   editForm.price = row.price
   editForm.unit = row.unit
-  editForm.lowStockThreshold = row.lowStockThreshold
+  editForm.low_stock_threshold = row.low_stock_threshold
   editForm.remark = row.remark || ''
-  editForm.itemLink = row.itemLink || ''
-  if (row.imageUrl) {
+  editForm.item_link = row.item_link || ''
+  if (row.image_url) {
     editForm.imageType = 'link'
-    editForm.imageUrl = row.imageUrl
+    editForm.image_url = row.image_url
   } else {
     editForm.imageType = 'link'
-    editForm.imageUrl = ''
+    editForm.image_url = ''
   }
   editVisible.value = true
 }
@@ -103,10 +111,10 @@ const submitEdit = async () => {
         brand: editForm.brand,
         price: editForm.price,
         unit: editForm.unit,
-        lowStockThreshold: editForm.lowStockThreshold,
+        low_stock_threshold: editForm.low_stock_threshold,
         remark: editForm.remark,
-        imageUrl: editForm.imageUrl,
-        itemLink: editForm.itemLink
+        image_url: editForm.image_url,
+        item_link: editForm.item_link
       })
       ElMessage.success('物品信息已更新')
       editVisible.value = false
@@ -114,7 +122,7 @@ const submitEdit = async () => {
   })
 }
 
-const handleImageChange = (file: any) => {
+const handleImageChange = async (file: any) => {
   if (file.raw) {
     const isImage = file.raw.type === 'image/jpeg' || file.raw.type === 'image/png'
     const isLt2M = file.raw.size / 1024 / 1024 < 2
@@ -128,8 +136,12 @@ const handleImageChange = (file: any) => {
       return false
     }
     
-    // Create local object URL for preview and mock upload
-    editForm.imageUrl = URL.createObjectURL(file.raw)
+    try {
+      const url = await uploadFile(file.raw)
+      editForm.image_url = url
+    } catch (e) {
+      ElMessage.error('图片上传失败')
+    }
   }
 }
 
@@ -153,8 +165,7 @@ const handleDelete = (row: any) => {
   }).catch(() => {})
 }
 
-// Low stock threshold
-const LOW_STOCK_THRESHOLD = 10
+
 </script>
 
 <template>
@@ -202,9 +213,9 @@ const LOW_STOCK_THRESHOLD = 10
         </el-table-column>
         <el-table-column prop="quantity" label="当前库存" width="120" align="right">
           <template #default="{ row }">
-            <span :class="{'text-red-500 font-bold': row.quantity < LOW_STOCK_THRESHOLD}">
+            <span :class="{'text-red-500 font-bold': row.quantity < row.low_stock_threshold}">
               {{ row.quantity }} {{ row.unit }}
-              <el-tag v-if="row.quantity < LOW_STOCK_THRESHOLD" type="danger" size="small" effect="plain" class="ml-1">预警</el-tag>
+              <el-tag v-if="row.quantity < row.low_stock_threshold" type="danger" size="small" effect="plain" class="ml-1">预警</el-tag>
             </span>
           </template>
         </el-table-column>
@@ -213,7 +224,11 @@ const LOW_STOCK_THRESHOLD = 10
             ¥{{ (row.price * row.quantity).toFixed(2) }}
           </template>
         </el-table-column>
-        <el-table-column prop="updatedAt" label="最后更新时间" width="180" />
+        <el-table-column prop="updated_at" label="最后更新时间" width="180">
+          <template #default="{ row }">
+            {{ row.updated_at ? new Date(row.updated_at).toLocaleString() : '-' }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="260" fixed="right">
           <template #default="scope">
             <el-button size="small" :icon="View" @click="handleView(scope.row)">详情</el-button>
@@ -244,10 +259,10 @@ const LOW_STOCK_THRESHOLD = 10
         <!-- 物品图片 -->
         <div class="flex justify-center">
           <el-image
-            v-if="currentItem.imageUrl"
-            :src="currentItem.imageUrl"
+            v-if="currentItem.image_url"
+            :src="currentItem.image_url"
             class="w-48 h-48 rounded-lg shadow-sm object-cover"
-            :preview-src-list="[currentItem.imageUrl]"
+            :preview-src-list="[currentItem.image_url]"
             fit="cover"
           />
           <div v-else class="w-48 h-48 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-gray-400">
@@ -262,16 +277,16 @@ const LOW_STOCK_THRESHOLD = 10
           <el-descriptions-item label="分类">{{ currentItem.category }}</el-descriptions-item>
           <el-descriptions-item label="品牌">{{ currentItem.brand || '-' }}</el-descriptions-item>
           <el-descriptions-item label="物品链接">
-            <a v-if="currentItem.itemLink" :href="currentItem.itemLink" target="_blank" class="text-blue-500 hover:underline">{{ currentItem.itemLink }}</a>
+            <a v-if="currentItem.item_link" :href="currentItem.item_link" target="_blank" class="text-blue-500 hover:underline">{{ currentItem.item_link }}</a>
             <span v-else>-</span>
           </el-descriptions-item>
           <el-descriptions-item label="单价">¥{{ currentItem.price.toFixed(2) }}</el-descriptions-item>
           <el-descriptions-item label="当前库存">
-            <span :class="{'text-red-500 font-bold': currentItem.quantity < currentItem.lowStockThreshold}">
+            <span :class="{'text-red-500 font-bold': currentItem.quantity < currentItem.low_stock_threshold}">
               {{ currentItem.quantity }} {{ currentItem.unit }}
             </span>
           </el-descriptions-item>
-          <el-descriptions-item label="预警阈值">{{ currentItem.lowStockThreshold }} {{ currentItem.unit }}</el-descriptions-item>
+          <el-descriptions-item label="预警阈值">{{ currentItem.low_stock_threshold }} {{ currentItem.unit }}</el-descriptions-item>
           <el-descriptions-item label="备注">{{ currentItem.remark || '无' }}</el-descriptions-item>
         </el-descriptions>
 
@@ -325,22 +340,22 @@ const LOW_STOCK_THRESHOLD = 10
         <el-form-item label="计量单位" prop="unit">
           <el-input v-model="editForm.unit" placeholder="如：个、台、箱" />
         </el-form-item>
-        <el-form-item label="预警阈值" prop="lowStockThreshold">
-          <el-input-number v-model="editForm.lowStockThreshold" :min="0" :step="1" class="w-full" />
+        <el-form-item label="预警阈值" prop="low_stock_threshold">
+          <el-input-number v-model="editForm.low_stock_threshold" :min="0" :step="1" class="w-full" />
         </el-form-item>
-        <el-form-item label="物品链接" prop="itemLink">
-          <el-input v-model="editForm.itemLink" placeholder="请输入物品购买或参考链接(可选)" />
+        <el-form-item label="物品链接" prop="item_link">
+          <el-input v-model="editForm.item_link" placeholder="请输入物品购买或参考链接(可选)" />
         </el-form-item>
         <el-form-item label="物品图片">
           <div class="flex flex-col gap-2 w-full">
-            <el-radio-group v-model="editForm.imageType" size="small" @change="editForm.imageUrl = ''">
+            <el-radio-group v-model="editForm.imageType" size="small" @change="editForm.image_url = ''">
               <el-radio-button label="link">图片链接</el-radio-button>
               <el-radio-button label="file">本地上传</el-radio-button>
             </el-radio-group>
             
             <el-input 
               v-if="editForm.imageType === 'link'" 
-              v-model="editForm.imageUrl" 
+              v-model="editForm.image_url" 
               placeholder="请输入图片URL链接" 
             />
             
@@ -352,8 +367,8 @@ const LOW_STOCK_THRESHOLD = 10
                 :auto-upload="false"
                 :on-change="handleImageChange"
               >
-                <div v-if="editForm.imageUrl" class="w-32 h-32 border border-gray-300 rounded overflow-hidden">
-                  <img :src="editForm.imageUrl" class="w-full h-full object-cover" />
+                <div v-if="editForm.image_url" class="w-32 h-32 border border-gray-300 rounded overflow-hidden">
+                  <img :src="editForm.image_url" class="w-full h-full object-cover" />
                 </div>
                 <div v-else class="w-32 h-32 border border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
                     <el-icon class="text-2xl text-gray-400"><Plus /></el-icon>

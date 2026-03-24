@@ -7,6 +7,7 @@ import { useInventoryStore } from '@/store/inventory'
 import { useUserStore } from '@/store/user'
 import { useMetadataStore } from '@/store/metadata'
 import { storeToRefs } from 'pinia'
+import { uploadFile } from '@/api/request'
 
 const router = useRouter()
 const inventoryStore = useInventoryStore()
@@ -20,7 +21,7 @@ const loading = ref(false)
 const inboundMode = ref<'new' | 'existing'>('new')
 
 const form = reactive({
-  itemId: '',
+  itemId: null as any,
   name: '',
   category: '',
   brand: '',
@@ -57,26 +58,30 @@ const handleModeChange = () => {
   form.itemLink = ''
 }
 
-const handleImageChange = (file: any) => {
+const handleImageChange = async (file: any) => {
   if (file.raw) {
     const isImage = file.raw.type === 'image/jpeg' || file.raw.type === 'image/png'
     const isLt2M = file.raw.size / 1024 / 1024 < 2
 
     if (!isImage) {
-      ElMessage.error('上传头像图片只能是 JPG/PNG 格式!')
+      ElMessage.error('上传图片只能是 JPG/PNG 格式!')
       return false
     }
     if (!isLt2M) {
-      ElMessage.error('上传头像图片大小不能超过 2MB!')
+      ElMessage.error('上传图片大小不能超过 2MB!')
       return false
     }
     
-    // Create local object URL for preview and mock upload
-    form.image = URL.createObjectURL(file.raw)
+    try {
+      const url = await uploadFile(file.raw)
+      form.image = url
+    } catch (e) {
+      ElMessage.error('图片上传失败')
+    }
   }
 }
 
-const handleItemSelect = (id: string) => {
+const handleItemSelect = (id: number) => {
   const item = inventoryStore.items.find(i => i.id === id)
   if (item) {
     form.name = item.name
@@ -84,10 +89,10 @@ const handleItemSelect = (id: string) => {
     form.brand = item.brand || ''
     form.unit = item.unit
     form.price = item.price
-    form.itemLink = item.itemLink || ''
-    if (item.imageUrl) {
+    form.itemLink = item.item_link || ''
+    if (item.image_url) {
       form.imageType = 'link'
-      form.image = item.imageUrl
+      form.image = item.image_url
     } else {
       form.imageType = 'link'
       form.image = ''
@@ -97,30 +102,32 @@ const handleItemSelect = (id: string) => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid: boolean) => {
+  await formRef.value.validate(async (valid: boolean) => {
     if (valid) {
       loading.value = true
       
-      // Perform inbound action
-      inventoryStore.inbound({
-        name: form.name,
-        category: form.category,
-        brand: form.brand,
-        quantity: form.quantity,
-        price: form.price,
-        unit: form.unit,
-        lowStockThreshold: 10, // Default threshold
-        imageUrl: form.image,
-        itemLink: form.itemLink,
-        operator: userStore.userInfo.username,
-        remark: form.remarks
-      })
+      try {
+        await inventoryStore.inbound({
+          name: form.name,
+          category: form.category,
+          brand: form.brand,
+          quantity: form.quantity,
+          price: form.price,
+          unit: form.unit,
+          low_stock_threshold: 10,
+          image_url: form.image,
+          item_link: form.itemLink,
+          operator: userStore.userInfo.username,
+          remark: form.remarks
+        })
 
-      setTimeout(() => {
-        loading.value = false
         ElMessage.success('入库成功')
         router.push('/inventory/list')
-      }, 500)
+      } catch (e: any) {
+        // Error is handled in interceptor
+      } finally {
+        loading.value = false
+      }
     }
   })
 }

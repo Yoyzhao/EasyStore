@@ -16,7 +16,7 @@ const formRef = ref()
 const loading = ref(false)
 
 const form = reactive({
-  itemId: '',
+  itemId: null as any,
   itemName: '',
   currentStock: 0,
   quantity: 1,
@@ -52,7 +52,7 @@ const items = inventoryStore.items.map(item => ({
   stock: item.quantity
 }))
 
-const handleItemChange = (val: string) => {
+const handleItemChange = (val: number) => {
   const item = items.find(i => i.id === val)
   if (item) {
     form.itemName = item.name
@@ -66,26 +66,24 @@ const handleItemChange = (val: string) => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid: boolean) => {
+  await formRef.value.validate(async (valid: boolean) => {
     if (valid) {
       loading.value = true
       try {
-        inventoryStore.outbound({
-          itemId: form.itemId,
+        await inventoryStore.outbound({
+          item_id: form.itemId,
           quantity: form.quantity,
           operator: form.operator,
           usage: form.usage,
           recipient: form.recipient,
           remark: form.remark
         })
-        setTimeout(() => {
-          loading.value = false
-          ElMessage.success('出库成功')
-          router.push('/inventory/list')
-        }, 500)
+        ElMessage.success('出库成功')
+        router.push('/inventory/list')
       } catch (error: any) {
+        // Error is handled in interceptor
+      } finally {
         loading.value = false
-        ElMessage.error(error.message || '出库失败')
       }
     }
   })

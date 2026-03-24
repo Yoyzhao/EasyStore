@@ -1,58 +1,33 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import request from '@/api/request'
 
 export const useMetadataStore = defineStore('metadata', () => {
-  const categories = ref([
-    { id: 1, name: '电子产品', description: '手机、电脑等' },
-    { id: 2, name: '办公用品', description: '纸张、笔具等' },
-    { id: 3, name: '食品饮料', description: '零食、饮料等' },
-    { id: 4, name: '日用品', description: '日常生活用品' }
-  ])
+  const categories = ref<any[]>([])
+  const brands = ref<any[]>([])
+  const units = ref<any[]>([])
+  const usages = ref<any[]>([])
 
-  const brands = ref([
-    { id: 1, name: 'Apple', description: '苹果' },
-    { id: 2, name: '得力', description: '办公用品品牌' },
-    { id: 3, name: '百事', description: '饮料品牌' }
-  ])
-
-  const units = ref([
-    { id: 1, name: '个' },
-    { id: 2, name: '包' },
-    { id: 3, name: '箱' },
-    { id: 4, name: '台' },
-    { id: 5, name: '支' },
-    { id: 6, name: '件' }
-  ])
-
-  const usages = ref([
-    { id: 1, name: '研发测试', description: '用于研发部门内部测试' },
-    { id: 2, name: '日常办公', description: '日常办公消耗' },
-    { id: 3, name: '项目交付', description: '交付给客户的项目物资' }
-  ])
-
-  const addMetadata = (type: string, item: any) => {
-    const target = type === 'category' ? categories : (type === 'brand' ? brands : (type === 'unit' ? units : usages))
-    target.value.push(item)
+  const fetchMetadata = async () => {
+    categories.value = await request.get('/metadata/?type=category')
+    brands.value = await request.get('/metadata/?type=brand')
+    units.value = await request.get('/metadata/?type=unit')
+    usages.value = await request.get('/metadata/?type=usage')
   }
 
-  const updateMetadata = (type: string, item: any) => {
-    const target = type === 'category' ? categories : (type === 'brand' ? brands : (type === 'unit' ? units : usages))
-    const index = target.value.findIndex((i: any) => i.id === item.id)
-    if (index !== -1) {
-      target.value[index] = item
-    }
+  const addMetadata = async (type: string, item: any) => {
+    await request.post('/metadata/', { type, ...item })
+    await fetchMetadata()
   }
 
-  const deleteMetadata = (type: string, id: number) => {
-    if (type === 'category') {
-      categories.value = categories.value.filter(item => item.id !== id)
-    } else if (type === 'brand') {
-      brands.value = brands.value.filter(item => item.id !== id)
-    } else if (type === 'unit') {
-      units.value = units.value.filter(item => item.id !== id)
-    } else {
-      usages.value = usages.value.filter(item => item.id !== id)
-    }
+  const updateMetadata = async (_type: string, item: any) => {
+    await request.put(`/metadata/${item.id}`, item)
+    await fetchMetadata()
+  }
+
+  const deleteMetadata = async (_type: string, id: number) => {
+    await request.delete(`/metadata/${id}`)
+    await fetchMetadata()
   }
 
   return {
@@ -60,6 +35,7 @@ export const useMetadataStore = defineStore('metadata', () => {
     brands,
     units,
     usages,
+    fetchMetadata,
     addMetadata,
     updateMetadata,
     deleteMetadata

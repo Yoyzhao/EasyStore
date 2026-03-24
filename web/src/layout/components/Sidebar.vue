@@ -89,7 +89,7 @@ const resolvePath = (basePath: string, childPath?: string) => {
         </div>
         <template #dropdown>
           <el-dropdown-menu class="w-48">
-            <el-dropdown-item>个人中心</el-dropdown-item>
+            <el-dropdown-item @click="router.push('/profile')">个人中心</el-dropdown-item>
             <el-dropdown-item divided @click="handleLogout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>

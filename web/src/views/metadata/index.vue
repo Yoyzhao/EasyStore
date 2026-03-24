@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Plus, Delete, Edit } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useMetadataStore } from '@/store/metadata'
@@ -7,6 +7,10 @@ import { storeToRefs } from 'pinia'
 
 const activeTab = ref('category')
 const metadataStore = useMetadataStore()
+
+onMounted(() => {
+  metadataStore.fetchMetadata()
+})
 
 const { categories, brands, units, usages } = storeToRefs(metadataStore)
 
@@ -45,8 +49,8 @@ const handleDelete = (type: string, row: any) => {
       type: 'warning',
     }
   )
-    .then(() => {
-      metadataStore.deleteMetadata(type, row.id)
+    .then(async () => {
+      await metadataStore.deleteMetadata(type, row.id)
       ElMessage({
         type: 'success',
         message: '删除成功',
@@ -55,22 +59,22 @@ const handleDelete = (type: string, row: any) => {
     .catch(() => {})
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!form.value.name) {
     ElMessage.warning('名称不能为空')
     return
   }
   
-  const newItem = { 
-    id: form.value.id || Date.now(), 
+  const newItem: any = { 
     name: form.value.name, 
     description: form.value.description 
   }
-
+  
   if (form.value.id) {
-    metadataStore.updateMetadata(editingType.value, newItem)
+    newItem.id = form.value.id
+    await metadataStore.updateMetadata(editingType.value, newItem)
   } else {
-    metadataStore.addMetadata(editingType.value, newItem)
+    await metadataStore.addMetadata(editingType.value, newItem)
   }
 
   dialogVisible.value = false

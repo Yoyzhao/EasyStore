@@ -1,32 +1,32 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import request from '@/api/request'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
   const userInfo = ref({
-    username: 'Admin',
-    role: 'admin' // 'admin' or 'user'
+    username: '',
+    role: '' // 'admin' or 'user'
   })
 
   const login = async (form: any) => {
-    // Mock login logic
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        if (form.username === 'admin' && form.password === '123456') {
-          token.value = 'mock-token-admin'
-          userInfo.value = { username: 'Admin', role: 'admin' }
-          localStorage.setItem('token', token.value)
-          resolve()
-        } else if (form.username === 'user' && form.password === '123456') {
-          token.value = 'mock-token-user'
-          userInfo.value = { username: 'User', role: 'user' }
-          localStorage.setItem('token', token.value)
-          resolve()
-        } else {
-          reject(new Error('用户名或密码错误'))
-        }
-      }, 500)
-    })
+    const formData = new FormData()
+    formData.append('username', form.username)
+    formData.append('password', form.password)
+    
+    const res: any = await request.post('/auth/login', formData)
+    token.value = res.access_token
+    localStorage.setItem('token', token.value)
+    await getUserInfo()
+  }
+
+  const getUserInfo = async () => {
+    if (!token.value) return
+    const res: any = await request.get('/auth/me')
+    userInfo.value = {
+      username: res.username,
+      role: res.role
+    }
   }
 
   const logout = () => {
@@ -40,6 +40,7 @@ export const useUserStore = defineStore('user', () => {
     token,
     userInfo,
     login,
+    getUserInfo,
     logout
   }
 })

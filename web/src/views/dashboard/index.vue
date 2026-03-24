@@ -1,28 +1,35 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import * as echarts from 'echarts'
 import { useDark } from '@vueuse/core'
+import { useDashboardStore } from '@/store/dashboard'
+import { useInventoryStore } from '@/store/inventory'
 
 const isDark = useDark()
 const chartRef = ref<HTMLElement | null>(null)
 let chartInstance: echarts.ECharts | null = null
 
-// 核心数据 Mock
-const coreData = ref([
-  { title: '总物品种类', value: 128, icon: 'Box', color: 'text-blue-500', bg: 'bg-blue-100', darkBg: 'rgba(59, 130, 246, 0.3)' },
-  { title: '总库存数量', value: 3450, icon: 'Coin', color: 'text-green-500', bg: 'bg-green-100', darkBg: 'rgba(16, 185, 129, 0.3)' },
-  { title: '库存告警', value: 12, icon: 'Warning', color: 'text-red-500', bg: 'bg-red-100', darkBg: 'rgba(239, 68, 68, 0.3)' },
-  { title: '今日出入库', value: 45, icon: 'Sort', color: 'text-purple-500', bg: 'bg-purple-100', darkBg: 'rgba(168, 85, 247, 0.3)' }
+const dashboardStore = useDashboardStore()
+const inventoryStore = useInventoryStore()
+
+// 核心数据
+const coreData = computed(() => [
+  { title: '总物品种类', value: dashboardStore.stats.total_items, icon: 'Box', color: 'text-blue-500', bg: 'bg-blue-100', darkBg: 'rgba(59, 130, 246, 0.3)' },
+  { title: '总库存价值', value: dashboardStore.stats.total_value, icon: 'Coin', color: 'text-green-500', bg: 'bg-green-100', darkBg: 'rgba(16, 185, 129, 0.3)' },
+  { title: '库存告警', value: dashboardStore.stats.low_stock_items, icon: 'Warning', color: 'text-red-500', bg: 'bg-red-100', darkBg: 'rgba(239, 68, 68, 0.3)' },
+  { title: '近期出入库', value: dashboardStore.stats.recent_inbound + dashboardStore.stats.recent_outbound, icon: 'Sort', color: 'text-purple-500', bg: 'bg-purple-100', darkBg: 'rgba(168, 85, 247, 0.3)' }
 ])
 
-// 最新操作记录 Mock
-const recentRecords = ref([
-  { id: 1, type: '入库', item: 'MacBook Pro 16', qty: 10, operator: 'Admin', time: '2023-10-27 10:30' },
-  { id: 2, type: '出库', item: '联想显示器', qty: 5, operator: 'User01', time: '2023-10-27 09:15' },
-  { id: 3, type: '入库', item: '罗技无线鼠标', qty: 50, operator: 'Admin', time: '2023-10-26 16:40' },
-  { id: 4, type: '出库', item: '机械键盘', qty: 2, operator: 'User02', time: '2023-10-26 14:20' },
-  { id: 5, type: '出库', item: 'MacBook Pro 16', qty: 1, operator: 'User01', time: '2023-10-26 11:05' },
-])
+const recentRecords = computed(() => {
+  return inventoryStore.records.slice(0, 5).map(r => ({
+    id: r.id,
+    type: r.type === 'in' ? '入库' : '出库',
+    item: r.item_name,
+    qty: r.quantity,
+    operator: r.operator,
+    time: new Date(r.time).toLocaleString()
+  }))
+})
 
 const initChart = () => {
   if (!chartRef.value) return
@@ -55,7 +62,7 @@ const initChart = () => {
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: ['10-21', '10-22', '10-23', '10-24', '10-25', '10-26', '10-27'],
+      data: dashboardStore.trend.dates,
       axisLabel: {
         color: isDark.value ? '#9CA3AF' : '#6B7280'
       }
@@ -76,14 +83,14 @@ const initChart = () => {
         name: '入库',
         type: 'line',
         smooth: true,
-        data: [120, 132, 101, 134, 90, 230, 210],
+        data: dashboardStore.trend.inbound,
         itemStyle: { color: '#10B981' }
       },
       {
         name: '出库',
         type: 'line',
         smooth: true,
-        data: [220, 182, 191, 234, 290, 330, 310],
+        data: dashboardStore.trend.outbound,
         itemStyle: { color: '#F59E0B' }
       }
     ]
@@ -92,15 +99,20 @@ const initChart = () => {
   chartInstance.setOption(option)
 }
 
-watch(isDark, () => {
+watch(() => [isDark.value, dashboardStore.trend], () => {
   initChart()
-})
+}, { deep: true })
 
 const handleResize = () => {
   chartInstance?.resize()
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await Promise.all([
+    dashboardStore.fetchStats(),
+    dashboardStore.fetchTrend(),
+    inventoryStore.fetchRecords()
+  ])
   initChart()
   window.addEventListener('resize', handleResize)
 })
