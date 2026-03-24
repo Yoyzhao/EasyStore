@@ -8,7 +8,9 @@ const usersStore = useUsersStore()
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ''
-  const date = new Date(dateStr)
+  // Append Z to indicate UTC time if not present, so the browser parses it correctly and converts to local time
+  const dStr = dateStr.endsWith('Z') || dateStr.includes('+') ? dateStr : dateStr + 'Z'
+  const date = new Date(dStr)
   return date.toLocaleString('zh-CN', { hour12: false })
 }
 

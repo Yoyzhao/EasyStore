@@ -17,7 +17,7 @@ const searchForm = reactive({
 const tableData = computed(() => {
   return inventoryStore.records.map(record => ({
     ...record,
-    createdAt: new Date(record.time).toLocaleString(),
+    createdAt: new Date(record.time.endsWith('Z') || record.time.includes('+') ? record.time : record.time + 'Z').toLocaleString('zh-CN', { hour12: false }),
     name: record.item_name
   })).filter(record => {
     let match = true

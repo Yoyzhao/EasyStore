@@ -6,9 +6,12 @@ from app.api import deps
 from app.models.item import Item
 from app.models.transaction import Transaction
 from app.models.user import User
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
+
+# Define UTC+8 timezone
+TZ_UTC_8 = timezone(timedelta(hours=8))
 
 @router.get("/stats", response_model=Dict[str, Any])
 def get_dashboard_stats(
@@ -25,7 +28,8 @@ def get_dashboard_stats(
     low_stock_items = db.query(func.count(Item.id)).filter(Item.quantity < Item.low_stock_threshold).scalar() or 0
 
     # Recent Transactions (Last 7 days)
-    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    now = datetime.now(TZ_UTC_8)
+    seven_days_ago = now - timedelta(days=7)
     recent_inbound = db.query(func.count(Transaction.id)).filter(
         Transaction.type == 'in',
         Transaction.time >= seven_days_ago
@@ -50,7 +54,8 @@ def get_dashboard_trend(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     # Get last 7 days trend data
-    today = datetime.utcnow().date()
+    now = datetime.now(TZ_UTC_8)
+    today = now.date()
     dates = [(today - timedelta(days=i)).strftime('%m-%d') for i in range(6, -1, -1)]
     
     inbound_data = []
@@ -58,7 +63,8 @@ def get_dashboard_trend(
     
     for i in range(6, -1, -1):
         target_date = today - timedelta(days=i)
-        start_of_day = datetime.combine(target_date, datetime.min.time())
+        # Combine date with min/max time and attach UTC+8 timezone
+        start_of_day = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=TZ_UTC_8)
         end_of_day = start_of_day + timedelta(days=1)
         
         daily_inbound = db.query(func.sum(Transaction.quantity)).filter(

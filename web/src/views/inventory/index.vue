@@ -226,7 +226,7 @@ const handleDelete = (row: any) => {
         </el-table-column>
         <el-table-column prop="updated_at" label="最后更新时间" width="180">
           <template #default="{ row }">
-            {{ row.updated_at ? new Date(row.updated_at).toLocaleString() : '-' }}
+            {{ row.updated_at ? new Date(row.updated_at.endsWith('Z') || row.updated_at.includes('+') ? row.updated_at : row.updated_at + 'Z').toLocaleString('zh-CN', { hour12: false }) : '-' }}
           </template>
         </el-table-column>
         <el-table-column label="操作" width="260" fixed="right">

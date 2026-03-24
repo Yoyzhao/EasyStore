@@ -9,6 +9,9 @@ DEFAULT_SETTINGS = {
     "upload": {
         "max_size_mb": 5,
         "allowed_extensions": ["jpg", "jpeg", "png", "gif", "webp"]
+    },
+    "access": {
+        "allow_external_ip": False
     }
 }
 
@@ -26,6 +29,8 @@ def get_settings() -> Dict[str, Any]:
             merged = DEFAULT_SETTINGS.copy()
             if "upload" in data:
                 merged["upload"].update(data["upload"])
+            if "access" in data:
+                merged["access"].update(data["access"])
             return merged
     except Exception:
         return DEFAULT_SETTINGS
@@ -34,6 +39,8 @@ def update_settings(new_settings: Dict[str, Any]) -> Dict[str, Any]:
     current_settings = get_settings()
     if "upload" in new_settings:
         current_settings["upload"].update(new_settings["upload"])
+    if "access" in new_settings:
+        current_settings["access"].update(new_settings["access"])
         
     os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
     with open(SETTINGS_FILE, "w", encoding="utf-8") as f:

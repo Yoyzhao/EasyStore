@@ -11,6 +11,9 @@ const settingsForm = ref({
   upload: {
     max_size_mb: 5,
     allowed_extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp']
+  },
+  access: {
+    allow_external_ip: false
   }
 })
 
@@ -181,6 +184,19 @@ onMounted(() => {
                   </div>
                 </el-form-item>
 
+                <div class="font-bold text-lg mb-4 mt-8" style="color: var(--el-text-color-primary)">访问控制设置</div>
+                
+                <el-form-item label="允许外部访问" prop="access.allow_external_ip">
+                  <el-switch
+                    v-model="settingsForm.access.allow_external_ip"
+                    active-text="允许"
+                    inactive-text="仅本机"
+                  />
+                  <div class="ml-4 text-xs" style="color: var(--el-text-color-secondary)">
+                    开启后，允许其他IP地址的设备访问本系统；关闭后，仅允许本机 (127.0.0.1 / localhost) 访问。
+                  </div>
+                </el-form-item>
+
                 <el-form-item class="mt-8">
                   <el-button type="primary" @click="saveSettings" :loading="savingSettings">
                     保存设置
@@ -197,9 +213,9 @@ onMounted(() => {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 
                 <!-- 备份卡片 -->
-                <div class="border rounded-lg p-6 flex flex-col h-full" style="border-color: var(--el-border-color-light)">
-                  <div class="flex items-center mb-4 text-lg font-bold" style="color: var(--el-text-color-primary)">
-                    <el-icon class="mr-2 text-blue-500"><Download /></el-icon>
+                <div class="border rounded-lg p-6 flex flex-col h-full bg-blue-50 dark:bg-blue-950/20" style="border-color: var(--el-color-primary-light-7)">
+                  <div class="flex items-center mb-4 text-lg font-bold text-blue-600 dark:text-blue-500">
+                    <el-icon class="mr-2"><Download /></el-icon>
                     数据备份
                   </div>
                   <p class="text-sm mb-6 flex-1" style="color: var(--el-text-color-regular)">
@@ -233,7 +249,7 @@ onMounted(() => {
                     :before-upload="beforeRestoreUpload"
                     :http-request="handleRestore"
                     accept=".zip"
-                    class="w-full"
+                    class="w-full upload-full"
                   >
                     <el-button 
                       type="danger" 
@@ -264,5 +280,8 @@ onMounted(() => {
 .system-tabs :deep(.el-tabs__content) {
   flex: 1;
   overflow: hidden;
+}
+.upload-full :deep(.el-upload) {
+  width: 100%;
 }
 </style>
