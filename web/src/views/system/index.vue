@@ -2,8 +2,10 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/api/request'
+import { useAppStore } from '@/store/app'
 
 const activeTab = ref('general')
+const appStore = useAppStore()
 
 // ====== 系统设置 ======
 const settingsFormRef = ref()
@@ -130,7 +132,7 @@ onMounted(() => {
 
 <template>
   <div class="h-full flex flex-col gap-4">
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">系统设置</h1>
     </div>
 
@@ -140,12 +142,12 @@ onMounted(() => {
           
           <!-- 常规设置 / 上传设置 -->
           <el-tab-pane label="常规参数" name="general" class="h-full overflow-auto">
-            <div class="py-4 px-6 max-w-3xl" v-loading="loadingSettings">
+            <div class="py-4 px-2 sm:px-6 max-w-3xl" v-loading="loadingSettings">
               <el-form 
                 ref="settingsFormRef" 
                 :model="settingsForm" 
                 label-width="140px" 
-                label-position="left"
+                :label-position="appStore.isMobile ? 'top' : 'left'"
               >
                 <div class="font-bold text-lg mb-4 mt-2" style="color: var(--el-text-color-primary)">上传限制设置</div>
                 
@@ -209,8 +211,8 @@ onMounted(() => {
 
           <!-- 备份与恢复 -->
           <el-tab-pane label="备份与恢复" name="backup" class="h-full overflow-auto">
-            <div class="py-4 px-6 max-w-5xl">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="py-4 px-2 sm:px-6 max-w-5xl">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
                 
                 <!-- 备份卡片 -->
                 <div class="border rounded-lg p-6 flex flex-col h-full bg-blue-50 dark:bg-blue-950/20" style="border-color: var(--el-color-primary-light-7)">

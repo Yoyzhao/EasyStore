@@ -85,7 +85,7 @@ const handleSubmit = async () => {
 
 <template>
   <div class="h-full flex flex-col gap-4">
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">元数据管理</h1>
     </div>
 

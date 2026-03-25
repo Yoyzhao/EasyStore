@@ -3,8 +3,10 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUsersStore } from '@/store/users'
+import { useAppStore } from '@/store/app'
 
 const usersStore = useUsersStore()
+const appStore = useAppStore()
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ''
@@ -118,9 +120,9 @@ const handleSubmit = async () => {
 
 <template>
   <div class="h-full flex flex-col gap-4">
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">用户管理</h1>
-      <el-button type="primary" :icon="Plus" @click="handleAdd">新增用户</el-button>
+      <el-button type="primary" :icon="Plus" @click="handleAdd" class="w-full sm:w-auto">新增用户</el-button>
     </div>
 
     <el-card shadow="hover" class="flex-1 flex flex-col border-none" style="background-color: var(--el-bg-color-overlay);" :body-style="{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }">
@@ -164,8 +166,8 @@ const handleSubmit = async () => {
     </el-card>
 
     <!-- Dialog -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" :width="appStore.isMobile ? '90%' : '500px'">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px" :label-position="appStore.isMobile ? 'top' : 'left'">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="form.username" :disabled="isEditing && form.username === 'admin'" />
         </el-form-item>

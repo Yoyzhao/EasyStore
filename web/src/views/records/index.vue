@@ -108,28 +108,28 @@ const handleExport = () => {
 
 <template>
   <div class="h-full flex flex-col gap-4">
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">流转明细</h1>
     </div>
 
     <el-card shadow="hover" class="border-none" style="background-color: var(--el-bg-color-overlay);">
-      <el-form :model="searchForm" label-width="70px">
+      <el-form :model="searchForm" label-width="70px" label-position="left">
         <el-row :gutter="20">
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="关键词" class="!mb-4 md:!mb-0">
+            <el-form-item label="关键词" class="!mb-4 lg:!mb-0">
               <el-input v-model="searchForm.keyword" placeholder="物品名称/ID" :prefix-icon="Search" class="w-full" clearable />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="4">
-            <el-form-item label="类型" class="!mb-4 md:!mb-0">
+            <el-form-item label="类型" class="!mb-4 lg:!mb-0">
               <el-select v-model="searchForm.type" placeholder="全部类型" clearable class="w-full">
                 <el-option label="入库" value="in" />
                 <el-option label="出库" value="out" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="24" :md="8" :lg="8">
-            <el-form-item label="时间范围" class="!mb-4 md:!mb-0">
+          <el-col :xs="24" :sm="24" :md="12" :lg="8">
+            <el-form-item label="时间范围" class="!mb-4 lg:!mb-0">
               <el-date-picker
                 v-model="searchForm.dateRange"
                 type="daterange"
@@ -145,10 +145,10 @@ const handleExport = () => {
               />
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="24" :md="24" :lg="6" class="flex justify-end items-center gap-2">
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
-            <el-button type="success" :icon="Download" @click="handleExport">导出 Excel</el-button>
+          <el-col :xs="24" :sm="24" :md="24" :lg="6" class="flex flex-wrap justify-end items-center gap-2 mt-2 lg:mt-0">
+            <el-button type="primary" @click="handleSearch" class="flex-1 sm:flex-none">查询</el-button>
+            <el-button @click="handleReset" class="flex-1 sm:flex-none">重置</el-button>
+            <el-button type="success" :icon="Download" @click="handleExport" class="w-full sm:w-auto mt-2 sm:mt-0">导出 Excel</el-button>
           </el-col>
         </el-row>
       </el-form>

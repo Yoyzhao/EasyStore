@@ -65,13 +65,13 @@ const submitPassword = async () => {
 </script>
 
 <template>
-  <div class="p-6 h-full overflow-auto">
-    <div class="max-w-3xl mx-auto">
-      <h2 class="text-2xl font-bold mb-6" style="color: var(--el-text-color-primary)">个人中心</h2>
+  <div class="h-full overflow-auto">
+    <div class="max-w-5xl mx-auto space-y-6">
+      <h2 class="text-2xl font-bold" style="color: var(--el-text-color-primary)">个人中心</h2>
       
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- 用户信息卡片 -->
-        <el-card class="col-span-1 border-none shadow-sm" style="background-color: var(--el-bg-color-overlay)">
+        <el-card class="border-none shadow-sm" style="background-color: var(--el-bg-color-overlay)">
           <div class="flex flex-col items-center py-6">
             <el-avatar :size="80" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" class="mb-4" />
             <h3 class="text-xl font-bold mb-2" style="color: var(--el-text-color-primary)">{{ userStore.userInfo.username }}</h3>
@@ -92,9 +92,9 @@ const submitPassword = async () => {
         </el-card>
 
         <!-- 修改密码卡片 -->
-        <el-card class="col-span-1 md:col-span-2 border-none shadow-sm" style="background-color: var(--el-bg-color-overlay)">
+        <el-card class="lg:col-span-2 border-none shadow-sm" style="background-color: var(--el-bg-color-overlay)">
           <template #header>
-            <div class="font-medium">修改密码</div>
+            <div class="font-bold text-lg">修改密码</div>
           </template>
           
           <el-form

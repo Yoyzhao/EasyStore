@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { useAppStore } from '@/store/app'
 import { computed } from 'vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const appStore = useAppStore()
 
 const handleLogout = () => {
   userStore.logout()
@@ -36,16 +38,24 @@ const resolvePath = (basePath: string, childPath?: string) => {
 </script>
 
 <template>
-  <div class="h-full transition-colors duration-300 flex flex-col" style="background-color: var(--el-bg-color); border-right: 1px solid var(--el-border-color-light);">
-    <div class="h-16 flex items-center justify-center shrink-0 gap-2" style="border-bottom: 1px solid var(--el-border-color-light);">
+  <div class="h-full transition-all duration-300 flex flex-col overflow-hidden" style="background-color: var(--el-bg-color); border-right: 1px solid var(--el-border-color-light);">
+    <div class="h-16 flex items-center shrink-0 gap-2 px-4" style="border-bottom: 1px solid var(--el-border-color-light);">
       <el-icon :size="28" style="color: var(--el-color-primary)"><Box /></el-icon>
-      <h1 class="text-xl font-bold truncate" style="color: var(--el-text-color-primary)">EasyStore</h1>
+      <h1 
+        v-show="!appStore.sidebarCollapsed"
+        class="text-xl font-bold truncate transition-opacity duration-300" 
+        style="color: var(--el-text-color-primary)"
+      >
+        EasyStore
+      </h1>
     </div>
     
     <el-menu
       :default-active="route.path"
+      :collapse="appStore.sidebarCollapsed"
       class="border-none flex-1 overflow-y-auto"
       router
+      :collapse-transition="false"
     >
       <template v-for="menu in menuList" :key="menu.path">
         <!-- 包含子菜单的情况 -->
@@ -62,7 +72,9 @@ const resolvePath = (basePath: string, childPath?: string) => {
               <el-icon v-if="child.meta?.icon">
                 <component :is="child.meta.icon" />
               </el-icon>
-              <span>{{ child.meta?.title }}</span>
+              <template #title>
+                <span>{{ child.meta?.title }}</span>
+              </template>
             </el-menu-item>
           </template>
         </el-sub-menu>
@@ -72,7 +84,9 @@ const resolvePath = (basePath: string, childPath?: string) => {
           <el-icon v-if="menu.meta?.icon">
             <component :is="menu.meta.icon" />
           </el-icon>
-          <span>{{ menu.meta?.title }}</span>
+          <template #title>
+            <span>{{ menu.meta?.title }}</span>
+          </template>
         </el-menu-item>
       </template>
     </el-menu>
@@ -80,12 +94,18 @@ const resolvePath = (basePath: string, childPath?: string) => {
     <!-- 用户操作区域 -->
     <div class="p-4 mt-auto shrink-0" style="border-top: 1px solid var(--el-border-color-light);">
       <el-dropdown trigger="click" placement="top" class="w-full">
-        <div class="flex items-center justify-between w-full cursor-pointer p-2 rounded transition-colors duration-300 hover-bg-fill">
-          <div class="flex items-center">
-            <el-avatar :size="32" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
-            <span class="ml-2 text-sm font-medium" style="color: var(--el-text-color-primary)">{{ userStore.userInfo.username }}</span>
+        <div class="flex items-center justify-between w-full cursor-pointer p-2 rounded transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+          <div class="flex items-center overflow-hidden">
+            <el-avatar :size="32" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" class="shrink-0" />
+            <span 
+              v-show="!appStore.sidebarCollapsed"
+              class="ml-2 text-sm font-medium truncate transition-opacity duration-300" 
+              style="color: var(--el-text-color-primary)"
+            >
+              {{ userStore.userInfo.username }}
+            </span>
           </div>
-          <el-icon style="color: var(--el-text-color-secondary)"><ArrowUp /></el-icon>
+          <el-icon v-show="!appStore.sidebarCollapsed" style="color: var(--el-text-color-secondary)"><ArrowUp /></el-icon>
         </div>
         <template #dropdown>
           <el-dropdown-menu class="w-48">

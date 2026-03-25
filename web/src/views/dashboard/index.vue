@@ -126,52 +126,54 @@ onUnmounted(() => {
 <template>
   <div class="space-y-6">
     <!-- 核心数据卡片 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <el-card v-for="(item, index) in coreData" :key="index" shadow="hover" class="border-none transition-colors duration-300" style="background-color: var(--el-bg-color-overlay);">
-        <div class="flex items-center">
-          <div :class="[item.color, 'p-4 rounded-lg mr-4 flex-shrink-0', !isDark ? item.bg : '']" :style="{ backgroundColor: isDark ? item.darkBg : '' }">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+      <el-card v-for="(item, index) in coreData" :key="index" shadow="hover" class="border-none transition-all duration-300 hover:-translate-y-1" style="background-color: var(--el-bg-color-overlay);">
+        <div class="flex items-center p-2 sm:p-0">
+          <div :class="[item.color, 'p-3 sm:p-4 rounded-xl mr-3 sm:mr-4 flex-shrink-0', !isDark ? item.bg : '']" :style="{ backgroundColor: isDark ? item.darkBg : '' }">
             <el-icon :size="24"><component :is="item.icon" /></el-icon>
           </div>
-          <div>
-            <div class="text-sm mb-1" style="color: var(--el-text-color-regular)">{{ item.title }}</div>
-            <div class="text-2xl font-bold" style="color: var(--el-text-color-primary)">
-              <span v-if="item.title === '总库存价值'" class="text-lg mr-0.5">￥</span>
+          <div class="min-w-0">
+            <div class="text-xs sm:text-sm mb-1 truncate" style="color: var(--el-text-color-regular)">{{ item.title }}</div>
+            <div class="text-xl sm:text-2xl font-bold truncate" style="color: var(--el-text-color-primary)">
+              <span v-if="item.title === '总库存价值'" class="text-base sm:text-lg mr-0.5">￥</span>
               {{ item.value }}
-              <span v-if="item.unit" class="text-sm ml-1 font-normal" style="color: var(--el-text-color-secondary)">{{ item.unit }}</span>
+              <span v-if="item.unit" class="text-xs sm:text-sm ml-1 font-normal opacity-70" style="color: var(--el-text-color-secondary)">{{ item.unit }}</span>
             </div>
           </div>
         </div>
       </el-card>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
       <!-- 趋势图 -->
-      <el-card shadow="hover" class="lg:col-span-2 border-none transition-colors duration-300" style="background-color: var(--el-bg-color-overlay);">
+      <el-card shadow="hover" class="xl:col-span-2 border-none transition-colors duration-300" style="background-color: var(--el-bg-color-overlay);">
         <template #header>
-          <div class="font-medium" style="color: var(--el-text-color-primary)">近期出入库趋势</div>
+          <div class="flex items-center justify-between">
+            <div class="font-bold text-base sm:text-lg" style="color: var(--el-text-color-primary)">近期出入库趋势</div>
+          </div>
         </template>
-        <div ref="chartRef" class="h-80 w-full"></div>
+        <div ref="chartRef" class="h-64 sm:h-80 w-full"></div>
       </el-card>
 
       <!-- 最新操作记录 -->
       <el-card shadow="hover" class="border-none transition-colors duration-300" style="background-color: var(--el-bg-color-overlay);">
         <template #header>
-          <div class="font-medium" style="color: var(--el-text-color-primary)">最新操作记录</div>
+          <div class="font-bold text-base sm:text-lg" style="color: var(--el-text-color-primary)">最新操作记录</div>
         </template>
         <div class="space-y-4">
           <div v-for="record in recentRecords" :key="record.id" class="flex items-start pb-4 border-b last:border-0 last:pb-0" style="border-color: var(--el-border-color-light)">
-            <el-tag :type="record.type === '入库' ? 'success' : 'warning'" size="small" class="mr-3 flex-shrink-0">
+            <el-tag :type="record.type === '入库' ? 'success' : 'warning'" size="small" class="mr-3 flex-shrink-0 rounded-md px-2">
               {{ record.type }}
             </el-tag>
             <div class="flex-1 min-w-0">
-              <div class="text-sm font-medium truncate" style="color: var(--el-text-color-primary)">
+              <div class="text-sm font-semibold truncate" style="color: var(--el-text-color-primary)">
                 {{ record.item }}
               </div>
-              <div class="text-xs mt-1" style="color: var(--el-text-color-secondary)">
+              <div class="text-xs mt-1 opacity-70" style="color: var(--el-text-color-secondary)">
                 {{ record.operator }} · {{ record.time }}
               </div>
             </div>
-            <div class="text-sm font-bold ml-2" :class="record.type === '入库' ? 'text-green-500' : 'text-orange-500'">
+            <div class="text-sm font-bold ml-2 whitespace-nowrap" :class="record.type === '入库' ? 'text-green-500' : 'text-orange-500'">
               {{ record.type === '入库' ? '+' : '-' }}{{ record.qty }}
             </div>
           </div>

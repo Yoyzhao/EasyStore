@@ -6,6 +6,7 @@ import { useInventoryStore } from '@/store/inventory'
 import { useMetadataStore } from '@/store/metadata'
 import { useSystemStore } from '@/store/system'
 import { useUserStore } from '@/store/user'
+import { useAppStore } from '@/store/app'
 import { storeToRefs } from 'pinia'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -18,6 +19,7 @@ const inventoryStore = useInventoryStore()
 const metadataStore = useMetadataStore()
 const systemStore = useSystemStore()
 const userStore = useUserStore()
+const appStore = useAppStore()
 
 const { categories, brands } = storeToRefs(metadataStore)
 const { totalItems } = storeToRefs(inventoryStore)
@@ -240,16 +242,16 @@ const handleDelete = (row: any) => {
 
 <template>
   <div class="h-full flex flex-col gap-4">
-    <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">库存列表</h1>
-      <div class="space-x-2">
-        <el-button type="primary" :icon="Plus" @click="handleInbound">入库</el-button>
-        <el-button type="warning" :icon="Plus" @click="handleOutbound">出库</el-button>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">库存管理</h1>
+      <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+        <el-button type="primary" :icon="Plus" @click="handleInbound" class="flex-1 sm:flex-none">入库</el-button>
+        <el-button type="warning" :icon="Plus" @click="handleOutbound" class="flex-1 sm:flex-none">出库</el-button>
       </div>
     </div>
 
     <el-card shadow="hover" class="border-none" style="background-color: var(--el-bg-color-overlay);">
-      <el-form :model="searchForm" label-width="60px">
+      <el-form :model="searchForm" label-width="60px" label-position="left">
         <el-row :gutter="20">
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
             <el-form-item label="关键词" class="!mb-4 lg:!mb-0">
@@ -259,21 +261,21 @@ const handleDelete = (row: any) => {
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
             <el-form-item label="分类" class="!mb-4 lg:!mb-0">
               <el-select v-model="searchForm.category" placeholder="全部分类" clearable class="w-full">
-                <el-option v-for="item in categories" :key="item" :label="item" :value="item" />
+                <el-option v-for="item in categories" :key="item.id" :label="item.name" :value="item.name" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
             <el-form-item label="品牌" class="!mb-4 lg:!mb-0">
               <el-select v-model="searchForm.brand" placeholder="全部品牌" clearable class="w-full">
-                <el-option v-for="item in brands" :key="item" :label="item" :value="item" />
+                <el-option v-for="item in brands" :key="item.id" :label="item.name" :value="item.name" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="12" :md="24" :lg="6" class="flex justify-end items-center gap-2">
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
-            <el-button type="success" :icon="Download" @click="handleExport">导出 Excel</el-button>
+          <el-col :xs="24" :sm="24" :md="24" :lg="6" class="flex flex-wrap justify-end items-center gap-2 mt-2 lg:mt-0">
+            <el-button type="primary" @click="handleSearch" class="flex-1 sm:flex-none">查询</el-button>
+            <el-button @click="handleReset" class="flex-1 sm:flex-none">重置</el-button>
+            <el-button type="success" :icon="Download" @click="handleExport" class="w-full sm:w-auto mt-2 sm:mt-0">导出 Excel</el-button>
           </el-col>
         </el-row>
       </el-form>
@@ -335,7 +337,7 @@ const handleDelete = (row: any) => {
     <el-drawer
       v-model="detailVisible"
       title="物品详情"
-      size="400px"
+      :size="appStore.isMobile ? '90%' : '400px'"
       destroy-on-close
     >
       <div v-if="currentItem" class="flex flex-col gap-6">
@@ -402,8 +404,8 @@ const handleDelete = (row: any) => {
     </el-drawer>
 
     <!-- 编辑弹窗 -->
-    <el-dialog v-model="editVisible" title="编辑物品信息" width="500px" destroy-on-close>
-      <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="90px">
+    <el-dialog v-model="editVisible" title="编辑物品信息" :width="appStore.isMobile ? '90%' : '500px'" destroy-on-close>
+      <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="90px" :label-position="appStore.isMobile ? 'top' : 'left'">
         <el-form-item label="物品名称" prop="name">
           <el-input v-model="editForm.name" placeholder="请输入物品名称" />
         </el-form-item>
