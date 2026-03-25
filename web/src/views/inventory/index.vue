@@ -118,7 +118,6 @@ const handleExport = () => {
     '物品名称': item.name,
     '分类': item.category,
     '品牌': item.brand || '-',
-    '规格': item.specification || '-',
     '库存量': item.quantity + ' ' + item.unit,
     '单价 (元)': item.price.toFixed(2),
     '总价 (元)': (item.price * item.quantity).toFixed(2),
@@ -136,7 +135,6 @@ const handleExport = () => {
     { wch: 20 }, // 物品名称
     { wch: 12 }, // 分类
     { wch: 12 }, // 品牌
-    { wch: 15 }, // 规格
     { wch: 12 }, // 库存量
     { wch: 12 }, // 单价
     { wch: 12 }, // 总价
