@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { reactive, computed, onMounted } from 'vue'
+import { reactive, computed, onMounted, ref } from 'vue'
 import { Search, Download } from '@element-plus/icons-vue'
 import { useInventoryStore } from '@/store/inventory'
+import { storeToRefs } from 'pinia'
 import * as XLSX from 'xlsx'
 
 const inventoryStore = useInventoryStore()
-
-onMounted(() => {
-  inventoryStore.fetchRecords()
-})
+const { totalRecords } = storeToRefs(inventoryStore)
 
 const searchForm = reactive({
   keyword: '',
@@ -16,41 +14,60 @@ const searchForm = reactive({
   dateRange: [] as [Date, Date] | []
 })
 
+const page = ref(1)
+const pageSize = ref(10)
+
+onMounted(() => {
+  fetchData()
+})
+
+const fetchData = () => {
+  let startDate = ''
+  let endDate = ''
+  if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+    startDate = searchForm.dateRange[0].toISOString()
+    endDate = searchForm.dateRange[1].toISOString()
+  }
+  inventoryStore.fetchRecords(
+    searchForm.keyword, 
+    searchForm.type, 
+    (page.value - 1) * pageSize.value, 
+    pageSize.value,
+    startDate,
+    endDate
+  )
+}
+
 const tableData = computed(() => {
   return inventoryStore.records.map(record => ({
     ...record,
     createdAt: new Date(record.time.endsWith('Z') || record.time.includes('+') ? record.time : record.time + 'Z').toLocaleString('zh-CN', { hour12: false }),
     name: record.item_name
-  })).filter(record => {
-    let match = true
-    if (searchForm.keyword) {
-      const keyword = searchForm.keyword.toLowerCase()
-      match = match && (
-        record.name.toLowerCase().includes(keyword) || 
-        record.item_id.toString().includes(keyword)
-      )
-    }
-    if (searchForm.type) {
-      match = match && record.type === searchForm.type
-    }
-    if (searchForm.dateRange && searchForm.dateRange.length === 2) {
-      const start = searchForm.dateRange[0].getTime()
-      const end = searchForm.dateRange[1].getTime() + 24 * 60 * 60 * 1000 - 1 // End of the day
-      const recordTime = new Date(record.time.endsWith('Z') || record.time.includes('+') ? record.time : record.time + 'Z').getTime()
-      match = match && (recordTime >= start && recordTime <= end)
-    }
-    return match
-  })
+  }))
 })
 
 const handleSearch = () => {
-  // handled by computed tableData
+  page.value = 1
+  fetchData()
 }
 
 const handleReset = () => {
   searchForm.keyword = ''
   searchForm.type = ''
   searchForm.dateRange = []
+  page.value = 1
+  fetchData()
+}
+
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
+  page.value = 1
+  fetchData()
+}
+
+const handleCurrentChange = (val: number) => {
+  page.value = val
+  fetchData()
 }
 
 const handleExport = () => {
@@ -168,10 +185,14 @@ const handleExport = () => {
 
       <div class="pt-4 mt-4 flex justify-end border-t" style="border-color: var(--el-border-color-lighter);">
         <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
           background
           layout="total, sizes, prev, pager, next, jumper"
-          :total="100"
+          :total="totalRecords"
           :page-sizes="[10, 20, 50, 100]"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
         />
       </div>
     </el-card>

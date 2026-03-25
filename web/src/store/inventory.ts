@@ -33,7 +33,9 @@ export interface OperationRecord {
 
 export const useInventoryStore = defineStore('inventory', () => {
   const items = ref<InventoryItem[]>([])
+  const totalItems = ref(0)
   const records = ref<OperationRecord[]>([])
+  const totalRecords = ref(0)
 
   const lowStockItems = computed(() => {
     return items.value.filter(item => item.quantity < item.low_stock_threshold)
@@ -43,17 +45,24 @@ export const useInventoryStore = defineStore('inventory', () => {
     return items.value.reduce((total, item) => total + item.quantity * item.price, 0)
   })
 
-  const fetchItems = async (search?: string, category?: string) => {
-    const params: any = {}
+  const fetchItems = async (search?: string, category?: string, skip = 0, limit = 10) => {
+    const params: any = { skip, limit }
     if (search) params.search = search
     if (category) params.category = category
     const res: any = await request.get('/items/', { params })
-    items.value = res
+    items.value = res.items
+    totalItems.value = res.total
   }
 
-  const fetchRecords = async () => {
-    const res: any = await request.get('/transactions/')
-    records.value = res
+  const fetchRecords = async (search?: string, type?: string, skip = 0, limit = 10, startDate?: string, endDate?: string) => {
+    const params: any = { skip, limit }
+    if (search) params.search = search
+    if (type) params.type = type
+    if (startDate) params.start_date = startDate
+    if (endDate) params.end_date = endDate
+    const res: any = await request.get('/transactions/', { params })
+    records.value = res.items
+    totalRecords.value = res.total
   }
 
   const inbound = async (data: any) => {
@@ -80,7 +89,9 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   return {
     items,
+    totalItems,
     records,
+    totalRecords,
     lowStockItems,
     totalInventoryValue,
     fetchItems,

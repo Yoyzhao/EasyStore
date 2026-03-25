@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -25,6 +25,10 @@ class TransactionInDBBase(TransactionBase):
 
 class Transaction(TransactionInDBBase):
     pass
+
+class TransactionPagination(BaseModel):
+    total: int
+    items: List[Transaction]
 
 class InboundRequest(BaseModel):
     name: str

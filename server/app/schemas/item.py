@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -38,3 +38,7 @@ class ItemInDBBase(ItemBase):
 
 class Item(ItemInDBBase):
     pass
+
+class ItemPagination(BaseModel):
+    total: int
+    items: List[Item]

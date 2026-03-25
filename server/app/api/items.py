@@ -4,12 +4,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from app.api import deps
 from app.models.item import Item
-from app.schemas.item import Item as ItemSchema, ItemCreate, ItemUpdate
+from app.schemas.item import Item as ItemSchema, ItemCreate, ItemUpdate, ItemPagination
 from app.models.user import User
 
 router = APIRouter()
 
-@router.get("/", response_model=List[ItemSchema])
+@router.get("/", response_model=ItemPagination)
 def read_items(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
@@ -23,8 +23,10 @@ def read_items(
         query = query.filter(or_(Item.name.contains(search), Item.remark.contains(search)))
     if category:
         query = query.filter(Item.category == category)
+    
+    total = query.count()
     items = query.offset(skip).limit(limit).all()
-    return items
+    return {"total": total, "items": items}
 
 @router.get("/{item_id}", response_model=ItemSchema)
 def read_item(

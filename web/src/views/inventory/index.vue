@@ -19,8 +19,20 @@ const metadataStore = useMetadataStore()
 const systemStore = useSystemStore()
 const userStore = useUserStore()
 
+const { categories, brands } = storeToRefs(metadataStore)
+const { totalItems } = storeToRefs(inventoryStore)
+
+const searchForm = reactive({
+  keyword: '',
+  category: '',
+  brand: ''
+})
+
+const page = ref(1)
+const pageSize = ref(10)
+
 onMounted(() => {
-  inventoryStore.fetchItems()
+  fetchData()
   inventoryStore.fetchRecords()
   metadataStore.fetchMetadata()
   if (!systemStore.isLoaded && userStore.userInfo?.role === 'admin') {
@@ -28,13 +40,9 @@ onMounted(() => {
   }
 })
 
-const { categories, brands } = storeToRefs(metadataStore)
-
-const searchForm = reactive({
-  keyword: '',
-  category: '',
-  brand: ''
-})
+const fetchData = () => {
+  inventoryStore.fetchItems(searchForm.keyword, searchForm.category, (page.value - 1) * pageSize.value, pageSize.value)
+}
 
 const tableData = computed(() => inventoryStore.items)
 
@@ -71,14 +79,27 @@ const editRules: FormRules = {
 }
 
 const handleSearch = () => {
-  inventoryStore.fetchItems(searchForm.keyword, searchForm.category)
+  page.value = 1
+  fetchData()
 }
 
 const handleReset = () => {
   searchForm.keyword = ''
   searchForm.category = ''
   searchForm.brand = ''
-  inventoryStore.fetchItems()
+  page.value = 1
+  fetchData()
+}
+
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
+  page.value = 1
+  fetchData()
+}
+
+const handleCurrentChange = (val: number) => {
+  page.value = val
+  fetchData()
 }
 
 const handleInbound = () => {
@@ -298,10 +319,14 @@ const handleDelete = (row: any) => {
 
       <div class="pt-4 mt-4 flex justify-end border-t" style="border-color: var(--el-border-color-lighter);">
         <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
           background
           layout="total, sizes, prev, pager, next, jumper"
-          :total="100"
+          :total="totalItems"
           :page-sizes="[10, 20, 50, 100]"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
         />
       </div>
     </el-card>

@@ -1,23 +1,41 @@
-from typing import Any, List
+from typing import Any, List, Optional
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from app.api import deps
 from app.models.item import Item
 from app.models.transaction import Transaction
-from app.schemas.transaction import Transaction as TransactionSchema, InboundRequest, OutboundRequest
+from app.schemas.transaction import Transaction as TransactionSchema, InboundRequest, OutboundRequest, TransactionPagination
 from app.models.user import User
 
 router = APIRouter()
 
-@router.get("/", response_model=List[TransactionSchema])
+@router.get("/", response_model=TransactionPagination)
 def read_transactions(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
+    search: Optional[str] = None,
+    type: Optional[str] = None,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
-    transactions = db.query(Transaction).order_by(Transaction.time.desc()).offset(skip).limit(limit).all()
-    return transactions
+    query = db.query(Transaction)
+    if search:
+        query = query.filter(or_(Transaction.item_name.contains(search), Transaction.remark.contains(search)))
+    if type:
+        query = query.filter(Transaction.type == type)
+    if start_date:
+        query = query.filter(Transaction.time >= start_date)
+    if end_date:
+        query = query.filter(Transaction.time <= end_date)
+    
+    query = query.order_by(Transaction.time.desc())
+    total = query.count()
+    transactions = query.offset(skip).limit(limit).all()
+    return {"total": total, "items": transactions}
 
 @router.post("/inbound", response_model=TransactionSchema)
 def inbound_item(
