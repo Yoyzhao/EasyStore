@@ -1,23 +1,31 @@
 <script setup lang="ts">
 import { reactive, computed, ref, onMounted } from 'vue'
-import { Search, Plus, Edit, Delete, View } from '@element-plus/icons-vue'
+import { Search, Plus, Edit, Delete, View, Download } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { useInventoryStore } from '@/store/inventory'
 import { useMetadataStore } from '@/store/metadata'
+import { useSystemStore } from '@/store/system'
+import { useUserStore } from '@/store/user'
 import { storeToRefs } from 'pinia'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import * as XLSX from 'xlsx'
 
 import { uploadFile } from '@/api/request'
 
 const router = useRouter()
 const inventoryStore = useInventoryStore()
 const metadataStore = useMetadataStore()
+const systemStore = useSystemStore()
+const userStore = useUserStore()
 
 onMounted(() => {
   inventoryStore.fetchItems()
   inventoryStore.fetchRecords()
   metadataStore.fetchMetadata()
+  if (!systemStore.isLoaded && userStore.userInfo?.role === 'admin') {
+    systemStore.fetchSettings()
+  }
 })
 
 const { categories, brands } = storeToRefs(metadataStore)
@@ -81,6 +89,43 @@ const handleOutbound = () => {
   router.push('/inventory/out')
 }
 
+const handleExport = () => {
+  const exportData = tableData.value.map(item => ({
+    '物品ID': item.id,
+    '物品名称': item.name,
+    '分类': item.category,
+    '品牌': item.brand || '-',
+    '规格': item.specification || '-',
+    '库存量': item.quantity + ' ' + item.unit,
+    '单价 (元)': item.price.toFixed(2),
+    '总价 (元)': (item.price * item.quantity).toFixed(2),
+    '预警阈值': item.low_stock_threshold,
+    '备注': item.remark || '-'
+  }))
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, '库存列表')
+  
+  // Set column widths
+  const wscols = [
+    { wch: 10 }, // 物品ID
+    { wch: 20 }, // 物品名称
+    { wch: 12 }, // 分类
+    { wch: 12 }, // 品牌
+    { wch: 15 }, // 规格
+    { wch: 12 }, // 库存量
+    { wch: 12 }, // 单价
+    { wch: 12 }, // 总价
+    { wch: 12 }, // 预警阈值
+    { wch: 30 }  // 备注
+  ]
+  worksheet['!cols'] = wscols
+
+  const fileName = `库存列表_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`
+  XLSX.writeFile(workbook, fileName)
+}
+
 const handleEdit = (row: any) => {
   editForm.id = row.id
   editForm.name = row.name
@@ -124,15 +169,19 @@ const submitEdit = async () => {
 
 const handleImageChange = async (file: any) => {
   if (file.raw) {
-    const isImage = file.raw.type === 'image/jpeg' || file.raw.type === 'image/png'
-    const isLt2M = file.raw.size / 1024 / 1024 < 2
+    const ext = file.raw.name.split('.').pop()?.toLowerCase() || ''
+    const allowedExts = systemStore.settings.upload.allowed_extensions
+    const maxSizeMB = systemStore.settings.upload.max_size_mb
 
-    if (!isImage) {
-      ElMessage.error('上传图片只能是 JPG/PNG 格式!')
+    const isAllowedExt = allowedExts.includes(ext)
+    const isLtMax = file.raw.size / 1024 / 1024 < maxSizeMB
+
+    if (!isAllowedExt) {
+      ElMessage.error(`上传图片只能是 ${allowedExts.join('/')} 格式!`)
       return false
     }
-    if (!isLt2M) {
-      ElMessage.error('上传图片大小不能超过 2MB!')
+    if (!isLtMax) {
+      ElMessage.error(`上传图片大小不能超过 ${maxSizeMB}MB!`)
       return false
     }
     
@@ -179,24 +228,33 @@ const handleDelete = (row: any) => {
     </div>
 
     <el-card shadow="hover" class="border-none" style="background-color: var(--el-bg-color-overlay);">
-      <el-form :inline="true" :model="searchForm" class="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <el-form-item label="关键词" class="!mb-0">
-          <el-input v-model="searchForm.keyword" placeholder="物品名称/ID" :prefix-icon="Search" style="width: 240px" clearable />
-        </el-form-item>
-        <el-form-item label="分类" class="!mb-0">
-          <el-select v-model="searchForm.category" placeholder="全部分类" clearable style="width: 160px">
-            <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="品牌" class="!mb-0">
-          <el-select v-model="searchForm.brand" placeholder="全部品牌" clearable style="width: 160px">
-            <el-option v-for="b in brands" :key="b.id" :label="b.name" :value="b.name" />
-          </el-select>
-        </el-form-item>
-        <el-form-item class="!mb-0 ml-auto mr-0">
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+      <el-form :model="searchForm" label-width="60px">
+        <el-row :gutter="20">
+          <el-col :xs="24" :sm="12" :md="8" :lg="6">
+            <el-form-item label="关键词" class="!mb-4 lg:!mb-0">
+              <el-input v-model="searchForm.keyword" placeholder="物品名称/ID" :prefix-icon="Search" class="w-full" clearable />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="8" :lg="6">
+            <el-form-item label="分类" class="!mb-4 lg:!mb-0">
+              <el-select v-model="searchForm.category" placeholder="全部分类" clearable class="w-full">
+                <el-option v-for="item in categories" :key="item" :label="item" :value="item" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="8" :lg="6">
+            <el-form-item label="品牌" class="!mb-4 lg:!mb-0">
+              <el-select v-model="searchForm.brand" placeholder="全部品牌" clearable class="w-full">
+                <el-option v-for="item in brands" :key="item" :label="item" :value="item" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="24" :lg="6" class="flex justify-end items-center gap-2">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+            <el-button type="success" :icon="Download" @click="handleExport">导出 Excel</el-button>
+          </el-col>
+        </el-row>
       </el-form>
     </el-card>
 
@@ -374,7 +432,7 @@ const handleDelete = (row: any) => {
                     <el-icon class="text-2xl text-gray-400"><Plus /></el-icon>
                 </div>
               </el-upload>
-              <div class="text-xs text-gray-500">支持 jpg/png 格式，不超过 2MB</div>
+              <div class="text-xs text-gray-500">支持 {{ systemStore.settings.upload.allowed_extensions.join('/') }} 格式，不超过 {{ systemStore.settings.upload.max_size_mb }}MB</div>
             </div>
           </div>
         </el-form-item>

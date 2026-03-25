@@ -5,8 +5,10 @@
             "jpg",
             "jpeg",
             "png",
-            "gif",
             "webp"
         ]
+    },
+    "access": {
+        "allow_external_ip": false
     }
 }

@@ -49,7 +49,7 @@ python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 pip install "bcrypt<4.0.0"
-python main.py
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 后端服务默认运行在 `http://127.0.0.1:8000`。
 

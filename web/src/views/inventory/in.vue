@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { useInventoryStore } from '@/store/inventory'
 import { useUserStore } from '@/store/user'
 import { useMetadataStore } from '@/store/metadata'
+import { useSystemStore } from '@/store/system'
 import { storeToRefs } from 'pinia'
 import { uploadFile } from '@/api/request'
 
@@ -13,6 +14,15 @@ const router = useRouter()
 const inventoryStore = useInventoryStore()
 const userStore = useUserStore()
 const metadataStore = useMetadataStore()
+const systemStore = useSystemStore()
+
+onMounted(() => {
+  inventoryStore.fetchItems()
+  metadataStore.fetchMetadata()
+  if (!systemStore.isLoaded && userStore.userInfo?.role === 'admin') {
+    systemStore.fetchSettings()
+  }
+})
 
 const { categories, brands, units } = storeToRefs(metadataStore)
 
@@ -28,6 +38,7 @@ const form = reactive({
   unit: '',
   quantity: 1,
   price: 0,
+  low_stock_threshold: 10,
   remarks: '',
   imageType: 'link', // 'link' or 'file'
   image: '',
@@ -40,7 +51,8 @@ const rules = {
   category: [{ required: true, message: '请选择分类', trigger: 'change' }],
   unit: [{ required: true, message: '请选择单位', trigger: 'change' }],
   quantity: [{ required: true, message: '请输入数量', trigger: 'blur' }],
-  price: [{ required: true, message: '请输入单价', trigger: 'blur' }]
+  price: [{ required: true, message: '请输入单价', trigger: 'blur' }],
+  low_stock_threshold: [{ required: true, message: '请输入低库存阈值', trigger: 'blur' }]
 }
 
 const handleModeChange = () => {
@@ -52,6 +64,7 @@ const handleModeChange = () => {
   form.unit = ''
   form.quantity = 1
   form.price = 0
+  form.low_stock_threshold = 10
   form.remarks = ''
   form.imageType = 'link'
   form.image = ''
@@ -60,15 +73,19 @@ const handleModeChange = () => {
 
 const handleImageChange = async (file: any) => {
   if (file.raw) {
-    const isImage = file.raw.type === 'image/jpeg' || file.raw.type === 'image/png'
-    const isLt2M = file.raw.size / 1024 / 1024 < 2
+    const ext = file.raw.name.split('.').pop()?.toLowerCase() || ''
+    const allowedExts = systemStore.settings.upload.allowed_extensions
+    const maxSizeMB = systemStore.settings.upload.max_size_mb
 
-    if (!isImage) {
-      ElMessage.error('上传图片只能是 JPG/PNG 格式!')
+    const isAllowedExt = allowedExts.includes(ext)
+    const isLtMax = file.raw.size / 1024 / 1024 < maxSizeMB
+
+    if (!isAllowedExt) {
+      ElMessage.error(`上传图片只能是 ${allowedExts.join('/')} 格式!`)
       return false
     }
-    if (!isLt2M) {
-      ElMessage.error('上传图片大小不能超过 2MB!')
+    if (!isLtMax) {
+      ElMessage.error(`上传图片大小不能超过 ${maxSizeMB}MB!`)
       return false
     }
     
@@ -89,6 +106,7 @@ const handleItemSelect = (id: number) => {
     form.brand = item.brand || ''
     form.unit = item.unit
     form.price = item.price
+    form.low_stock_threshold = item.low_stock_threshold ?? 10
     form.itemLink = item.item_link || ''
     if (item.image_url) {
       form.imageType = 'link'
@@ -114,7 +132,7 @@ const handleSubmit = async () => {
           quantity: form.quantity,
           price: form.price,
           unit: form.unit,
-          low_stock_threshold: 10,
+          low_stock_threshold: form.low_stock_threshold,
           image_url: form.image,
           item_link: form.itemLink,
           operator: userStore.userInfo.username,
@@ -201,11 +219,15 @@ const handleCancel = () => {
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="物品链接" prop="itemLink">
-                <el-input v-model="form.itemLink" placeholder="请输入物品购买或参考链接" :disabled="inboundMode === 'existing'" />
+              <el-form-item label="低库存阈值" prop="low_stock_threshold">
+                <el-input-number v-model="form.low_stock_threshold" :min="0" class="w-full" />
               </el-form-item>
             </el-col>
           </el-row>
+
+          <el-form-item label="物品链接" prop="itemLink">
+            <el-input v-model="form.itemLink" placeholder="请输入物品购买或参考链接" :disabled="inboundMode === 'existing'" />
+          </el-form-item>
 
           <el-form-item label="物品图片">
             <div class="flex flex-col gap-2 w-full">
@@ -237,7 +259,7 @@ const handleCancel = () => {
                       <el-icon class="text-2xl text-gray-400"><Plus /></el-icon>
                   </div>
                 </el-upload>
-                <div class="text-xs text-gray-500">支持 jpg/png 格式，不超过 2MB</div>
+                <div class="text-xs text-gray-500">支持 {{ systemStore.settings.upload.allowed_extensions.join('/') }} 格式，不超过 {{ systemStore.settings.upload.max_size_mb }}MB</div>
               </div>
             </div>
           </el-form-item>

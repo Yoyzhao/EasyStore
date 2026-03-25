@@ -14,10 +14,10 @@ const inventoryStore = useInventoryStore()
 
 // 核心数据
 const coreData = computed(() => [
-  { title: '总物品种类', value: dashboardStore.stats.total_items, icon: 'Box', color: 'text-blue-500', bg: 'bg-blue-100', darkBg: 'rgba(59, 130, 246, 0.3)' },
-  { title: '总库存价值', value: dashboardStore.stats.total_value, icon: 'Coin', color: 'text-green-500', bg: 'bg-green-100', darkBg: 'rgba(16, 185, 129, 0.3)' },
-  { title: '库存告警', value: dashboardStore.stats.low_stock_items, icon: 'Warning', color: 'text-red-500', bg: 'bg-red-100', darkBg: 'rgba(239, 68, 68, 0.3)' },
-  { title: '近期出入库', value: dashboardStore.stats.recent_inbound + dashboardStore.stats.recent_outbound, icon: 'Sort', color: 'text-purple-500', bg: 'bg-purple-100', darkBg: 'rgba(168, 85, 247, 0.3)' }
+  { title: '总物品种类', value: dashboardStore.stats.total_items, unit: '种', icon: 'Box', color: 'text-blue-500', bg: 'bg-blue-100', darkBg: 'rgba(59, 130, 246, 0.3)' },
+  { title: '总库存价值', value: dashboardStore.stats.total_value, unit: '', icon: 'Coin', color: 'text-green-500', bg: 'bg-green-100', darkBg: 'rgba(16, 185, 129, 0.3)' },
+  { title: '库存告警', value: dashboardStore.stats.low_stock_items, unit: '项', icon: 'Warning', color: 'text-red-500', bg: 'bg-red-100', darkBg: 'rgba(239, 68, 68, 0.3)' },
+  { title: '近期出入库', value: dashboardStore.stats.recent_inbound + dashboardStore.stats.recent_outbound, unit: '次', icon: 'Sort', color: 'text-purple-500', bg: 'bg-purple-100', darkBg: 'rgba(168, 85, 247, 0.3)' }
 ])
 
 const recentRecords = computed(() => {
@@ -134,7 +134,11 @@ onUnmounted(() => {
           </div>
           <div>
             <div class="text-sm mb-1" style="color: var(--el-text-color-regular)">{{ item.title }}</div>
-            <div class="text-2xl font-bold" style="color: var(--el-text-color-primary)">{{ item.value }}</div>
+            <div class="text-2xl font-bold" style="color: var(--el-text-color-primary)">
+              <span v-if="item.title === '总库存价值'" class="text-lg mr-0.5">￥</span>
+              {{ item.value }}
+              <span v-if="item.unit" class="text-sm ml-1 font-normal" style="color: var(--el-text-color-secondary)">{{ item.unit }}</span>
+            </div>
           </div>
         </div>
       </el-card>

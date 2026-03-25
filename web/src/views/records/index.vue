@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { reactive, computed, onMounted } from 'vue'
-import { Search } from '@element-plus/icons-vue'
+import { Search, Download } from '@element-plus/icons-vue'
 import { useInventoryStore } from '@/store/inventory'
+import * as XLSX from 'xlsx'
 
 const inventoryStore = useInventoryStore()
 
@@ -11,7 +12,8 @@ onMounted(() => {
 
 const searchForm = reactive({
   keyword: '',
-  type: ''
+  type: '',
+  dateRange: [] as [Date, Date] | []
 })
 
 const tableData = computed(() => {
@@ -22,10 +24,20 @@ const tableData = computed(() => {
   })).filter(record => {
     let match = true
     if (searchForm.keyword) {
-      match = match && record.name.includes(searchForm.keyword)
+      const keyword = searchForm.keyword.toLowerCase()
+      match = match && (
+        record.name.toLowerCase().includes(keyword) || 
+        record.item_id.toString().includes(keyword)
+      )
     }
     if (searchForm.type) {
       match = match && record.type === searchForm.type
+    }
+    if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+      const start = searchForm.dateRange[0].getTime()
+      const end = searchForm.dateRange[1].getTime() + 24 * 60 * 60 * 1000 - 1 // End of the day
+      const recordTime = new Date(record.time.endsWith('Z') || record.time.includes('+') ? record.time : record.time + 'Z').getTime()
+      match = match && (recordTime >= start && recordTime <= end)
     }
     return match
   })
@@ -38,6 +50,42 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.keyword = ''
   searchForm.type = ''
+  searchForm.dateRange = []
+}
+
+const handleExport = () => {
+  const exportData = tableData.value.map(item => ({
+    '操作时间': item.createdAt,
+    '类型': item.type === 'in' ? '入库' : '出库',
+    '物品ID': item.item_id,
+    '物品名称': item.name,
+    '变动数量': (item.type === 'in' ? '+' : '-') + item.quantity,
+    '单价 (元)': item.price.toFixed(2),
+    '操作人': item.operator,
+    '领用人': item.recipient || '-',
+    '备注': item.remark || '-'
+  }))
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, '流转明细')
+  
+  // Set column widths
+  const wscols = [
+    { wch: 20 }, // 操作时间
+    { wch: 8 },  // 类型
+    { wch: 10 }, // 物品ID
+    { wch: 20 }, // 物品名称
+    { wch: 10 }, // 变动数量
+    { wch: 12 }, // 单价
+    { wch: 12 }, // 操作人
+    { wch: 12 }, // 领用人
+    { wch: 30 }  // 备注
+  ]
+  worksheet['!cols'] = wscols
+
+  const fileName = `流转明细_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`
+  XLSX.writeFile(workbook, fileName)
 }
 </script>
 
@@ -48,20 +96,44 @@ const handleReset = () => {
     </div>
 
     <el-card shadow="hover" class="border-none" style="background-color: var(--el-bg-color-overlay);">
-      <el-form :inline="true" :model="searchForm" class="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <el-form-item label="关键词" class="!mb-0">
-          <el-input v-model="searchForm.keyword" placeholder="物品名称" :prefix-icon="Search" style="width: 240px" clearable />
-        </el-form-item>
-        <el-form-item label="类型" class="!mb-0">
-          <el-select v-model="searchForm.type" placeholder="全部类型" clearable style="width: 160px">
-            <el-option label="入库" value="in" />
-            <el-option label="出库" value="out" />
-          </el-select>
-        </el-form-item>
-        <el-form-item class="!mb-0 ml-auto mr-0">
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+      <el-form :model="searchForm" label-width="70px">
+        <el-row :gutter="20">
+          <el-col :xs="24" :sm="12" :md="8" :lg="6">
+            <el-form-item label="关键词" class="!mb-4 md:!mb-0">
+              <el-input v-model="searchForm.keyword" placeholder="物品名称/ID" :prefix-icon="Search" class="w-full" clearable />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="8" :lg="4">
+            <el-form-item label="类型" class="!mb-4 md:!mb-0">
+              <el-select v-model="searchForm.type" placeholder="全部类型" clearable class="w-full">
+                <el-option label="入库" value="in" />
+                <el-option label="出库" value="out" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="24" :md="8" :lg="8">
+            <el-form-item label="时间范围" class="!mb-4 md:!mb-0">
+              <el-date-picker
+                v-model="searchForm.dateRange"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                class="!w-full"
+                :shortcuts="[
+                  { text: '最近一周', value: () => [new Date(Date.now() - 3600 * 1000 * 24 * 7), new Date()] },
+                  { text: '最近一月', value: () => [new Date(Date.now() - 3600 * 1000 * 24 * 30), new Date()] },
+                  { text: '最近三月', value: () => [new Date(Date.now() - 3600 * 1000 * 24 * 90), new Date()] }
+                ]"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="24" :md="24" :lg="6" class="flex justify-end items-center gap-2">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+            <el-button type="success" :icon="Download" @click="handleExport">导出 Excel</el-button>
+          </el-col>
+        </el-row>
       </el-form>
     </el-card>
 
@@ -75,6 +147,7 @@ const handleReset = () => {
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="item_id" label="物品ID" width="100" />
         <el-table-column prop="name" label="物品名称" min-width="150" />
         <el-table-column prop="quantity" label="变动数量" width="120" align="right">
           <template #default="{ row }">

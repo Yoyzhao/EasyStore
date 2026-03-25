@@ -40,6 +40,8 @@ def inbound_item(
             item.image_url = inbound_in.image_url
         if inbound_in.remark:
             item.remark = inbound_in.remark
+        if inbound_in.low_stock_threshold is not None:
+            item.low_stock_threshold = inbound_in.low_stock_threshold
     else:
         item = Item(
             name=inbound_in.name,
@@ -100,7 +102,7 @@ def outbound_item(
     db.commit()
     db.refresh(item)
 
-    remark_str = f"Usage/Destination: {outbound_in.usage or 'N/A'}"
+    remark_str = f"用途/去向: {outbound_in.usage or '无'}"
     if outbound_in.remark:
         remark_str += f" - {outbound_in.remark}"
 
