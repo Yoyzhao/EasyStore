@@ -247,12 +247,15 @@ const handleDelete = (row: any) => {
 <template>
   <div class="h-full max-w-7xl mx-auto flex flex-col gap-6">
     <!-- 头部区域 -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)]">
-      <div>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] relative overflow-hidden group">
+      <!-- 装饰性背景图形 -->
+      <div class="absolute -right-10 -top-10 w-32 h-32 rounded-full opacity-5 bg-[#3B82F6] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 ease-out origin-top-right"></div>
+      
+      <div class="relative z-10">
         <h1 class="text-2xl font-bold text-[var(--text-main)] font-display tracking-tight">库存管理</h1>
         <p class="text-sm text-[var(--text-muted)] mt-1">管理您的所有物品库存、入库与出库操作</p>
       </div>
-      <div class="flex flex-wrap gap-3 w-full sm:w-auto">
+      <div class="flex items-center gap-3 w-full sm:w-auto relative z-10">
         <el-button type="primary" :icon="Plus" @click="handleInbound" class="flex-1 sm:flex-none !rounded-xl !h-10 font-medium shadow-sm shadow-blue-500/20">入库</el-button>
         <el-button type="warning" :icon="Plus" @click="handleOutbound" class="flex-1 sm:flex-none !rounded-xl !h-10 font-medium shadow-sm shadow-orange-500/20">出库</el-button>
       </div>

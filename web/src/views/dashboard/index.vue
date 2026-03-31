@@ -14,10 +14,10 @@ const inventoryStore = useInventoryStore()
 
 // 核心数据
 const coreData = computed(() => [
-  { title: '总物品种类', value: dashboardStore.stats.total_items, unit: '种', icon: 'Box', color: 'text-blue-500', bg: 'bg-blue-100', darkBg: 'rgba(59, 130, 246, 0.3)' },
-  { title: '总库存价值', value: dashboardStore.stats.total_value, unit: '', icon: 'Coin', color: 'text-green-500', bg: 'bg-green-100', darkBg: 'rgba(16, 185, 129, 0.3)' },
-  { title: '库存告警', value: dashboardStore.stats.low_stock_items, unit: '项', icon: 'Warning', color: 'text-red-500', bg: 'bg-red-100', darkBg: 'rgba(239, 68, 68, 0.3)' },
-  { title: '近期出入库', value: dashboardStore.stats.recent_inbound + dashboardStore.stats.recent_outbound, unit: '次', icon: 'Sort', color: 'text-purple-500', bg: 'bg-purple-100', darkBg: 'rgba(168, 85, 247, 0.3)' }
+  { title: '总物品种类', value: dashboardStore.stats.total_items, unit: '种', icon: 'Box', color: 'text-blue-500', bg: 'bg-blue-100', darkBg: 'rgba(59, 130, 246, 0.3)', circleColor: '#3B82F6' },
+  { title: '总库存价值', value: dashboardStore.stats.total_value, unit: '', icon: 'Coin', color: 'text-green-500', bg: 'bg-green-100', darkBg: 'rgba(16, 185, 129, 0.3)', circleColor: '#10B981' },
+  { title: '库存告警', value: dashboardStore.stats.low_stock_items, unit: '项', icon: 'Warning', color: 'text-red-500', bg: 'bg-red-100', darkBg: 'rgba(239, 68, 68, 0.3)', circleColor: '#EF4444' },
+  { title: '近期出入库', value: dashboardStore.stats.recent_inbound + dashboardStore.stats.recent_outbound, unit: '次', icon: 'Sort', color: 'text-purple-500', bg: 'bg-purple-100', darkBg: 'rgba(168, 85, 247, 0.3)', circleColor: '#A855F7' }
 ])
 
 const recentRecords = computed(() => {
@@ -126,8 +126,11 @@ onUnmounted(() => {
 <template>
   <div class="h-full max-w-7xl mx-auto flex flex-col gap-6">
     <!-- 头部区域 -->
-    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div>
+    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden group">
+      <!-- 装饰性背景图形 -->
+      <div class="absolute -right-10 -top-10 w-32 h-32 rounded-full opacity-5 bg-[#3B82F6] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 ease-out origin-top-right"></div>
+      
+      <div class="relative z-10">
         <h1 class="text-2xl font-bold text-[var(--text-main)] font-display tracking-tight">控制面板</h1>
         <p class="text-sm text-[var(--text-muted)] mt-1">快速了解系统状态与库存概览</p>
       </div>
@@ -137,7 +140,8 @@ onUnmounted(() => {
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
       <div v-for="(item, index) in coreData" :key="index" class="bg-[var(--card-bg)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-[var(--border-subtle)] relative overflow-hidden group">
         <!-- 装饰性背景图形 -->
-        <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 group-hover:scale-150 transition-transform duration-500 ease-out" :class="item.bg.replace('100', '500')"></div>
+        <div class="absolute -right-10 -top-10 w-32 h-32 rounded-full opacity-10 group-hover:opacity-20 group-hover:scale-110 transition-all duration-700 ease-out origin-top-right" :style="{ backgroundColor: item.circleColor }"></div>
+        <div class="absolute -right-4 -bottom-4 w-20 h-20 rounded-full opacity-5 group-hover:opacity-10 group-hover:scale-125 transition-all duration-1000 ease-out origin-bottom-right" :style="{ backgroundColor: item.circleColor }"></div>
         
         <div class="flex items-center relative z-10">
           <div :class="[item.color, 'p-4 rounded-2xl mr-4 flex-shrink-0 flex items-center justify-center', isDark ? 'bg-opacity-20' : item.bg]" :style="isDark ? { backgroundColor: item.darkBg } : {}">
@@ -157,17 +161,17 @@ onUnmounted(() => {
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
       <!-- 趋势图 -->
-      <div class="xl:col-span-2 bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] p-6 transition-colors duration-300">
-        <div class="flex items-center justify-between mb-6">
+      <div class="xl:col-span-2 bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] p-6 transition-colors duration-300 relative overflow-hidden group">
+        <div class="flex items-center justify-between mb-6 relative z-10">
           <h2 class="font-bold text-lg text-[var(--text-main)] font-display">近期出入库趋势</h2>
         </div>
-        <div ref="chartRef" class="h-64 sm:h-80 w-full"></div>
+        <div ref="chartRef" class="h-64 sm:h-80 w-full relative z-10"></div>
       </div>
 
       <!-- 最新操作记录 -->
-      <div class="bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] p-6 transition-colors duration-300 flex flex-col">
-        <h2 class="font-bold text-lg text-[var(--text-main)] font-display mb-6">最新操作记录</h2>
-        <div class="space-y-5 flex-1 overflow-y-auto custom-scrollbar pr-2">
+      <div class="bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] p-6 transition-colors duration-300 flex flex-col relative overflow-hidden group">
+        <h2 class="font-bold text-lg text-[var(--text-main)] font-display mb-6 relative z-10">最新操作记录</h2>
+        <div class="space-y-5 flex-1 overflow-y-auto custom-scrollbar pr-2 relative z-10">
           <div v-for="record in recentRecords" :key="record.id" class="flex items-center group">
             <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mr-4" :class="record.type === '入库' ? 'bg-green-100 text-green-600 dark:bg-green-900/30' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30'">
               <el-icon :size="18"><component :is="record.type === '入库' ? 'Bottom' : 'Top'" /></el-icon>

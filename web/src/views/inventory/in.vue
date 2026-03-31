@@ -158,12 +158,15 @@ const handleCancel = () => {
 <template>
   <div class="h-full max-w-7xl mx-auto flex flex-col gap-6">
     <!-- 头部区域 -->
-    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div>
+    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden group">
+      <!-- 装饰圆圈 -->
+      <div class="absolute -right-10 -top-10 w-32 h-32 rounded-full opacity-5 bg-[#3B82F6] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 ease-out origin-top-right"></div>
+      
+      <div class="relative z-10">
         <h1 class="text-2xl font-bold text-[var(--text-main)] font-display tracking-tight">物品入库</h1>
         <p class="text-sm text-[var(--text-muted)] mt-1">添加新物品或增加现有物品库存</p>
       </div>
-      <el-button @click="handleCancel" class="!rounded-xl !h-10 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent px-6">返回列表</el-button>
+      <el-button @click="handleCancel" class="relative z-10 !rounded-xl !h-10 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent px-6">返回列表</el-button>
     </div>
 
     <!-- 表单区域 -->

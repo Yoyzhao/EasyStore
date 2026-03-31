@@ -139,12 +139,15 @@ const handleSubmit = async () => {
 <template>
   <div class="h-full max-w-7xl mx-auto flex flex-col gap-6">
     <!-- 头部区域 -->
-    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div>
+    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden group">
+      <!-- 装饰圆圈 -->
+      <div class="absolute -right-10 -top-10 w-32 h-32 rounded-full opacity-5 bg-[#3B82F6] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 ease-out origin-top-right"></div>
+      
+      <div class="relative z-10">
         <h1 class="text-2xl font-bold text-[var(--text-main)] font-display tracking-tight">用户管理</h1>
         <p class="text-sm text-[var(--text-muted)] mt-1">管理系统用户的权限与状态</p>
       </div>
-      <el-button type="primary" :icon="Plus" @click="handleAdd" class="w-full sm:w-auto !rounded-xl !h-10 shadow-sm shadow-blue-500/20 font-medium px-6">新增用户</el-button>
+      <el-button type="primary" :icon="Plus" @click="handleAdd" class="relative z-10 w-full sm:w-auto !rounded-xl !h-10 shadow-sm shadow-blue-500/20 font-medium px-6">新增用户</el-button>
     </div>
 
     <div class="flex-1 bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col min-h-0">

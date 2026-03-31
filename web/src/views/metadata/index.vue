@@ -139,8 +139,11 @@ const handleSubmit = async () => {
 <template>
   <div class="h-full max-w-7xl mx-auto flex flex-col gap-6">
     <!-- 头部区域 -->
-    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div>
+    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden group">
+      <!-- 装饰圆圈 -->
+      <div class="absolute -right-10 -top-10 w-32 h-32 rounded-full opacity-5 bg-[#3B82F6] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 ease-out origin-top-right"></div>
+      
+      <div class="relative z-10">
         <h1 class="text-2xl font-bold text-[var(--text-main)] font-display tracking-tight">元数据管理</h1>
         <p class="text-sm text-[var(--text-muted)] mt-1">管理系统中的分类、品牌、单位及用途等基础数据</p>
       </div>
