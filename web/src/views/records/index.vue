@@ -24,9 +24,11 @@ onMounted(() => {
 const fetchData = () => {
   let startDate = ''
   let endDate = ''
-  if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+  if (searchForm.dateRange && Array.isArray(searchForm.dateRange) && searchForm.dateRange.length === 2) {
     startDate = searchForm.dateRange[0].toISOString()
-    endDate = searchForm.dateRange[1].toISOString()
+    const end = new Date(searchForm.dateRange[1])
+    end.setHours(23, 59, 59, 999)
+    endDate = end.toISOString()
   }
   inventoryStore.fetchRecords(
     searchForm.keyword, 
@@ -42,7 +44,8 @@ const tableData = computed(() => {
   return inventoryStore.records.map(record => ({
     ...record,
     createdAt: new Date(record.time.endsWith('Z') || record.time.includes('+') ? record.time : record.time + 'Z').toLocaleString('zh-CN', { hour12: false }),
-    name: record.item_name
+    name: record.item_name,
+    remark: record.remark ? record.remark.replace('Usage/Destination:', '用途/去向:') : '-'
   }))
 })
 
@@ -107,83 +110,113 @@ const handleExport = () => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-4">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">流转明细</h1>
+  <div class="h-full max-w-7xl mx-auto flex flex-col gap-6">
+    <!-- 头部区域 -->
+    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-[var(--text-main)] font-display tracking-tight">流转明细</h1>
+        <p class="text-sm text-[var(--text-muted)] mt-1">查看所有物品的入库和出库记录</p>
+      </div>
     </div>
 
-    <el-card shadow="hover" class="border-none" style="background-color: var(--el-bg-color-overlay);">
-      <el-form :model="searchForm" label-width="70px" label-position="left">
-        <el-row :gutter="20">
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="关键词" class="!mb-4 lg:!mb-0">
-              <el-input v-model="searchForm.keyword" placeholder="物品名称/ID" :prefix-icon="Search" class="w-full" clearable />
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="12" :md="8" :lg="4">
-            <el-form-item label="类型" class="!mb-4 lg:!mb-0">
-              <el-select v-model="searchForm.type" placeholder="全部类型" clearable class="w-full">
-                <el-option label="入库" value="in" />
-                <el-option label="出库" value="out" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="24" :md="12" :lg="8">
-            <el-form-item label="时间范围" class="!mb-4 lg:!mb-0">
-              <el-date-picker
-                v-model="searchForm.dateRange"
-                type="daterange"
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                class="!w-full"
-                :shortcuts="[
-                  { text: '最近一周', value: () => [new Date(Date.now() - 3600 * 1000 * 24 * 7), new Date()] },
-                  { text: '最近一月', value: () => [new Date(Date.now() - 3600 * 1000 * 24 * 30), new Date()] },
-                  { text: '最近三月', value: () => [new Date(Date.now() - 3600 * 1000 * 24 * 90), new Date()] }
-                ]"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="24" :md="24" :lg="6" class="flex flex-wrap justify-end items-center gap-2 mt-2 lg:mt-0">
-            <el-button type="primary" @click="handleSearch" class="flex-1 sm:flex-none">查询</el-button>
-            <el-button @click="handleReset" class="flex-1 sm:flex-none">重置</el-button>
-            <el-button type="success" :icon="Download" @click="handleExport" class="w-full sm:w-auto mt-2 sm:mt-0">导出 Excel</el-button>
-          </el-col>
-        </el-row>
+    <!-- 搜索筛选区 -->
+    <div class="bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] p-6 mb-0">
+      <el-form :model="searchForm" class="flex flex-wrap items-center gap-3 w-full" @submit.prevent="handleSearch">
+        <el-form-item class="!mb-0 !mr-0">
+          <el-input v-model="searchForm.keyword" placeholder="物品名称/ID" :prefix-icon="Search" class="!w-60 !rounded-xl" clearable @clear="handleSearch" />
+        </el-form-item>
+        <el-form-item class="!mb-0 !mr-0">
+          <el-select v-model="searchForm.type" placeholder="全部类型" clearable class="!w-32 !rounded-xl" @change="handleSearch">
+            <el-option label="入库" value="in" />
+            <el-option label="出库" value="out" />
+          </el-select>
+        </el-form-item>
+        <el-form-item class="!mb-0 !mr-0">
+          <el-date-picker
+            v-model="searchForm.dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            class="!w-72 !rounded-xl"
+            @change="handleSearch"
+            :shortcuts="[
+              { text: '最近一周', value: () => [new Date(Date.now() - 3600 * 1000 * 24 * 7), new Date()] },
+              { text: '最近一月', value: () => [new Date(Date.now() - 3600 * 1000 * 24 * 30), new Date()] },
+              { text: '最近三月', value: () => [new Date(Date.now() - 3600 * 1000 * 24 * 90), new Date()] }
+            ]"
+          />
+        </el-form-item>
+        <el-form-item class="!mb-0 !mr-0 ml-auto">
+          <div class="flex items-center gap-2">
+            <el-button type="primary" @click="handleSearch" class="!rounded-xl !h-10 font-medium px-6">查询</el-button>
+            <el-button @click="handleReset" class="!rounded-xl !h-10 font-medium px-6 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent">重置</el-button>
+            <el-button type="success" :icon="Download" @click="handleExport" class="!rounded-xl !h-10 font-medium shadow-sm shadow-green-500/20 px-6">导出 Excel</el-button>
+          </div>
+        </el-form-item>
       </el-form>
-    </el-card>
+    </div>
 
-    <el-card shadow="hover" class="flex-1 flex flex-col border-none" style="background-color: var(--el-bg-color-overlay);" :body-style="{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }">
-      <el-table :data="tableData" stripe style="width: 100%; flex: 1;" height="100%">
-        <el-table-column prop="createdAt" label="操作时间" width="180" />
-        <el-table-column prop="type" label="类型" width="100">
+    <!-- 表格区域 -->
+    <div class="flex-1 flex flex-col bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] p-6 overflow-hidden">
+      <el-table :data="tableData" style="width: 100%; flex: 1;" height="100%" class="custom-table" :header-cell-style="{ background: 'var(--el-fill-color-light)', color: 'var(--text-main)', fontWeight: '600', height: '48px' }">
+        <el-table-column prop="createdAt" label="操作时间" width="180">
           <template #default="{ row }">
-            <el-tag :type="row.type === 'in' ? 'success' : 'warning'">
-              {{ row.type === 'in' ? '入库' : '出库' }}
-            </el-tag>
+            <span class="text-[var(--text-muted)]">{{ row.createdAt }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="item_id" label="物品ID" width="100" />
-        <el-table-column prop="name" label="物品名称" min-width="150" />
+        <el-table-column prop="type" label="类型" width="100">
+          <template #default="{ row }">
+            <div :class="row.type === 'in' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'" class="inline-flex items-center justify-center px-2.5 py-1 rounded-md text-xs font-medium border border-transparent">
+              {{ row.type === 'in' ? '入库' : '出库' }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="item_id" label="物品ID" width="100">
+          <template #default="{ row }">
+            <span class="font-mono text-[var(--text-muted)] text-sm">{{ row.item_id }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="name" label="物品名称" min-width="150">
+          <template #default="{ row }">
+            <span class="font-medium text-[var(--text-main)]">{{ row.name }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="quantity" label="变动数量" width="120" align="right">
           <template #default="{ row }">
-            <span :class="row.type === 'in' ? 'text-green-600' : 'text-orange-600'">
+            <span :class="row.type === 'in' ? 'text-green-600 dark:text-green-400 font-bold' : 'text-orange-600 dark:text-orange-400 font-bold'" class="text-base">
               {{ row.type === 'in' ? '+' : '-' }}{{ row.quantity }}
             </span>
           </template>
         </el-table-column>
         <el-table-column prop="price" label="单价 (元)" width="120" align="right">
           <template #default="{ row }">
-            {{ row.price ? row.price.toFixed(2) : '0.00' }}
+            <span class="text-[var(--text-muted)] font-mono">¥{{ row.price ? row.price.toFixed(2) : '0.00' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="operator" label="操作人" width="120" />
-        <el-table-column prop="recipient" label="领用人" width="120" />
-        <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="operator" label="操作人" width="120">
+          <template #default="{ row }">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 text-xs font-bold">
+                {{ row.operator.charAt(0).toUpperCase() }}
+              </div>
+              <span class="text-sm">{{ row.operator }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="recipient" label="领用人" width="120">
+          <template #default="{ row }">
+            <span class="text-[var(--text-muted)]">{{ row.recipient || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip>
+          <template #default="{ row }">
+            <span class="text-[var(--text-muted)] truncate">{{ row.remark || '-' }}</span>
+          </template>
+        </el-table-column>
       </el-table>
 
-      <div class="pt-4 mt-4 flex justify-end border-t" style="border-color: var(--el-border-color-lighter);">
+      <div class="p-4 flex justify-end border-t border-[var(--border-subtle)] bg-[var(--card-bg)]">
         <el-pagination
           v-model:current-page="page"
           v-model:page-size="pageSize"
@@ -193,8 +226,9 @@ const handleExport = () => {
           :page-sizes="[10, 20, 50, 100]"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
+          class="custom-pagination"
         />
       </div>
-    </el-card>
+    </div>
   </div>
 </template>

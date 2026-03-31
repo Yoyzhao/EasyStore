@@ -156,82 +156,88 @@ const handleCancel = () => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-4">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">物品入库</h1>
+  <div class="h-full max-w-7xl mx-auto flex flex-col gap-6">
+    <!-- 头部区域 -->
+    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-[var(--text-main)] font-display tracking-tight">物品入库</h1>
+        <p class="text-sm text-[var(--text-muted)] mt-1">添加新物品或增加现有物品库存</p>
+      </div>
+      <el-button @click="handleCancel" class="!rounded-xl !h-10 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent px-6">返回列表</el-button>
     </div>
 
-    <el-card shadow="hover" class="border-none flex-1 overflow-auto" style="background-color: var(--el-bg-color-overlay);">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" class="max-w-3xl">
-          <el-form-item label="入库类型">
-            <el-radio-group v-model="inboundMode" @change="handleModeChange">
+    <!-- 表单区域 -->
+    <div class="flex-1 bg-[var(--card-bg)] p-8 rounded-2xl shadow-sm border border-[var(--border-subtle)] overflow-auto">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" class="max-w-3xl mx-auto mt-4" label-position="top">
+          <el-form-item label="入库类型" class="font-medium">
+            <el-radio-group v-model="inboundMode" @change="handleModeChange" class="!rounded-xl">
               <el-radio-button label="new">新物品入库</el-radio-button>
               <el-radio-button label="existing">已有物品入库</el-radio-button>
             </el-radio-group>
           </el-form-item>
 
-          <el-form-item v-if="inboundMode === 'existing'" label="选择物品" prop="itemId">
-            <el-select v-model="form.itemId" filterable placeholder="搜索物品名称或ID" class="w-full" @change="handleItemSelect">
+          <el-form-item v-if="inboundMode === 'existing'" label="选择物品" prop="itemId" class="font-medium">
+            <el-select v-model="form.itemId" filterable placeholder="搜索物品名称或ID" class="w-full !rounded-xl" @change="handleItemSelect">
               <el-option v-for="item in inventoryStore.items" :key="item.id" :label="`${item.name} (${item.id})`" :value="item.id" />
             </el-select>
           </el-form-item>
 
-          <el-form-item v-if="inboundMode === 'new'" label="物品名称" prop="name">
-            <el-input v-model="form.name" placeholder="请输入物品名称" />
+          <el-form-item v-if="inboundMode === 'new'" label="物品名称" prop="name" class="font-medium">
+            <el-input v-model="form.name" placeholder="请输入物品名称" class="!rounded-xl" />
           </el-form-item>
 
-          <el-row :gutter="20">
+          <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="分类" prop="category">
-                <el-select v-model="form.category" placeholder="请选择分类" filterable allow-create class="w-full" :disabled="inboundMode === 'existing'">
+              <el-form-item label="分类" prop="category" class="font-medium">
+                <el-select v-model="form.category" placeholder="请选择分类" filterable allow-create class="w-full !rounded-xl" :disabled="inboundMode === 'existing'">
                   <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="品牌" prop="brand">
-                <el-select v-model="form.brand" placeholder="请选择品牌 (可选)" filterable allow-create clearable class="w-full" :disabled="inboundMode === 'existing'">
+              <el-form-item label="品牌" prop="brand" class="font-medium">
+                <el-select v-model="form.brand" placeholder="请选择品牌 (可选)" filterable allow-create clearable class="w-full !rounded-xl" :disabled="inboundMode === 'existing'">
                   <el-option v-for="b in brands" :key="b.id" :label="b.name" :value="b.name" />
                 </el-select>
               </el-form-item>
             </el-col>
           </el-row>
 
-          <el-row :gutter="20">
+          <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="单位" prop="unit">
-                <el-select v-model="form.unit" placeholder="请选择单位" filterable allow-create class="w-full" :disabled="inboundMode === 'existing'">
+              <el-form-item label="单位" prop="unit" class="font-medium">
+                <el-select v-model="form.unit" placeholder="请选择单位" filterable allow-create class="w-full !rounded-xl" :disabled="inboundMode === 'existing'">
                   <el-option v-for="u in units" :key="u.id" :label="u.name" :value="u.name" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="入库数量" prop="quantity">
-                <el-input-number v-model="form.quantity" :min="1" class="w-full" />
+              <el-form-item label="入库数量" prop="quantity" class="font-medium">
+                <el-input-number v-model="form.quantity" :min="1" class="w-full !rounded-xl" />
               </el-form-item>
             </el-col>
           </el-row>
 
-          <el-row :gutter="20">
+          <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="单价" prop="price">
-                <el-input-number v-model="form.price" :min="0" :precision="2" class="w-full" :disabled="inboundMode === 'existing'" />
+              <el-form-item label="单价" prop="price" class="font-medium">
+                <el-input-number v-model="form.price" :min="0" :precision="2" class="w-full !rounded-xl" :disabled="inboundMode === 'existing'" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="低库存阈值" prop="low_stock_threshold">
-                <el-input-number v-model="form.low_stock_threshold" :min="0" class="w-full" />
+              <el-form-item label="低库存阈值" prop="low_stock_threshold" class="font-medium">
+                <el-input-number v-model="form.low_stock_threshold" :min="0" class="w-full !rounded-xl" />
               </el-form-item>
             </el-col>
           </el-row>
 
-          <el-form-item label="物品链接" prop="itemLink">
-            <el-input v-model="form.itemLink" placeholder="请输入物品购买或参考链接" :disabled="inboundMode === 'existing'" />
+          <el-form-item label="物品链接" prop="itemLink" class="font-medium">
+            <el-input v-model="form.itemLink" placeholder="请输入物品购买或参考链接" :disabled="inboundMode === 'existing'" class="!rounded-xl" />
           </el-form-item>
 
-          <el-form-item label="物品图片">
+          <el-form-item label="物品图片" class="font-medium">
             <div class="flex flex-col gap-2 w-full">
-              <el-radio-group v-model="form.imageType" size="small" :disabled="inboundMode === 'existing'" @change="form.image = ''">
+              <el-radio-group v-model="form.imageType" size="small" :disabled="inboundMode === 'existing'" @change="form.image = ''" class="!rounded-xl">
                 <el-radio-button label="link">图片链接</el-radio-button>
                 <el-radio-button label="file">本地上传</el-radio-button>
               </el-radio-group>
@@ -241,9 +247,10 @@ const handleCancel = () => {
                 v-model="form.image" 
                 placeholder="请输入图片URL链接" 
                 :disabled="inboundMode === 'existing'" 
+                class="!rounded-xl"
               />
               
-              <div v-else class="flex flex-col gap-1">
+              <div v-else class="flex flex-col gap-1 mt-2">
                 <el-upload
                   class="avatar-uploader"
                   action="#"
@@ -252,27 +259,27 @@ const handleCancel = () => {
                   :on-change="handleImageChange"
                   :disabled="inboundMode === 'existing'"
                 >
-                  <div v-if="form.image" class="w-32 h-32 border border-gray-300 rounded overflow-hidden">
+                  <div v-if="form.image" class="w-32 h-32 border border-[var(--border-subtle)] rounded-xl overflow-hidden shadow-sm">
                     <img :src="form.image" class="w-full h-full object-cover" />
                   </div>
-                  <div v-else class="w-32 h-32 border border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors" :class="{'bg-gray-100 cursor-not-allowed opacity-60': inboundMode === 'existing'}">
+                  <div v-else class="w-32 h-32 border border-dashed border-[var(--border-subtle)] rounded-xl flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all" :class="{'bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60 hover:border-[var(--border-subtle)] hover:bg-gray-100': inboundMode === 'existing'}">
                       <el-icon class="text-2xl text-gray-400"><Plus /></el-icon>
                   </div>
                 </el-upload>
-                <div class="text-xs text-gray-500">支持 {{ systemStore.settings.upload.allowed_extensions.join('/') }} 格式，不超过 {{ systemStore.settings.upload.max_size_mb }}MB</div>
+                <div class="text-xs text-[var(--text-muted)] mt-1">支持 {{ systemStore.settings.upload.allowed_extensions.join('/') }} 格式，不超过 {{ systemStore.settings.upload.max_size_mb }}MB</div>
               </div>
             </div>
           </el-form-item>
 
-          <el-form-item label="备注" prop="remarks">
-            <el-input v-model="form.remarks" type="textarea" rows="3" placeholder="请输入备注信息" />
+          <el-form-item label="备注" prop="remarks" class="font-medium">
+            <el-input v-model="form.remarks" type="textarea" rows="3" placeholder="请输入备注信息" class="!rounded-xl" />
           </el-form-item>
 
-          <el-form-item>
-            <el-button type="primary" :loading="loading" @click="handleSubmit">确认入库</el-button>
-            <el-button @click="handleCancel">取消</el-button>
+          <el-form-item class="mt-8">
+            <el-button type="primary" :loading="loading" @click="handleSubmit" class="!rounded-xl !h-11 font-medium shadow-sm shadow-blue-500/20 px-8 text-base">确认入库</el-button>
+            <el-button @click="handleCancel" class="!rounded-xl !h-11 font-medium px-8 text-base hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent">取消</el-button>
           </el-form-item>
         </el-form>
-      </el-card>
+    </div>
   </div>
 </template>

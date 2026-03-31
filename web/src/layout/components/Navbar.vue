@@ -16,11 +16,11 @@ const breadcrumbs = computed(() => {
 </script>
 
 <template>
-  <div class="h-16 flex items-center justify-between px-4 transition-colors duration-300 shrink-0" style="background-color: var(--el-bg-color); border-bottom: 1px solid var(--el-border-color-light);">
+  <div class="h-16 flex items-center justify-between px-6 transition-colors duration-300 shrink-0 bg-transparent">
     <div class="flex items-center gap-4">
       <!-- 折叠按钮 -->
       <div 
-        class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+        class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors text-[var(--text-muted)] hover:text-[var(--text-main)]"
         @click="appStore.toggleSidebar"
       >
         <el-icon :size="20">
@@ -31,37 +31,39 @@ const breadcrumbs = computed(() => {
       <!-- 面包屑 (仅在大屏显示) -->
       <el-breadcrumb class="hidden sm:block">
         <el-breadcrumb-item v-for="item in breadcrumbs" :key="item.path">
-          {{ item.meta.title }}
+          <span class="font-medium text-[var(--text-muted)]">{{ item.meta.title }}</span>
         </el-breadcrumb-item>
       </el-breadcrumb>
       
       <!-- 移动端当前页面标题 -->
-      <span class="sm:hidden font-medium text-sm truncate" style="color: var(--el-text-color-primary)">
+      <span class="sm:hidden font-bold text-lg truncate text-[var(--text-main)] font-display">
         {{ route.meta.title }}
       </span>
     </div>
 
-    <div class="flex items-center gap-4">
-      <el-switch
-        v-model="isDark"
-        class="theme-switch"
-        inline-prompt
-        :active-icon="'Moon'"
-        :inactive-icon="'Sunny'"
-        @change="toggleDark"
-      />
+    <div class="flex items-center gap-5">
+      <!-- 通知/其他操作可放这里 -->
+      <div class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors text-[var(--text-muted)] hover:text-[var(--text-main)]">
+        <el-icon :size="20"><Bell /></el-icon>
+      </div>
+      
+      <!-- 主题切换 -->
+      <div class="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors" @click="toggleDark()">
+        <el-icon :size="20" :class="isDark ? 'text-gray-200' : 'text-amber-500'">
+          <component :is="isDark ? 'Moon' : 'Sunny'" />
+        </el-icon>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* 增强浅色模式下太阳图标的可见性 */
-:deep(.theme-switch:not(.is-checked) .el-switch__core .el-switch__inner .el-icon) {
-  color: #E6A23C; /* 橙色太阳 */
+:deep(.el-breadcrumb__inner) {
+  color: var(--text-muted) !important;
+  font-weight: 500;
 }
-
-/* 深色模式下的月亮图标 */
-:deep(.theme-switch.is-checked .el-switch__core .el-switch__inner .el-icon) {
-  color: #F2F2F2; /* 浅色月亮 */
+:deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
+  color: var(--text-main) !important;
+  font-weight: 600;
 }
 </style>

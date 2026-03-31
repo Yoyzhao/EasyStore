@@ -32,36 +32,39 @@ watch(() => route.path, () => {
 </script>
 
 <template>
-  <div class="h-screen w-full flex overflow-hidden transition-colors duration-300 relative" style="background-color: var(--el-bg-color-page);">
+  <div class="h-screen w-full flex overflow-hidden transition-colors duration-300 relative bg-[var(--page-bg)]">
     <!-- 移动端遮罩层 -->
     <div 
       v-if="!appStore.sidebarCollapsed && appStore.isMobile"
-      class="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300"
+      class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
       @click="appStore.setSidebarCollapsed(true)"
     ></div>
 
-    <!-- 侧边栏 -->
+    <!-- 侧边栏容器：悬浮设计或全高设计 -->
     <div 
-      class="h-full flex-shrink-0 transition-all duration-300 z-50 fixed md:relative"
+      class="flex-shrink-0 transition-all duration-300 z-50 fixed md:relative p-0 md:p-4 md:pr-0"
       :class="[
-        appStore.sidebarCollapsed ? '-translate-x-full md:translate-x-0 md:w-20' : 'translate-x-0 w-64',
+        appStore.sidebarCollapsed ? '-translate-x-full md:translate-x-0 md:w-24' : 'translate-x-0 w-64 md:w-72',
       ]"
     >
-      <Sidebar />
+      <div class="h-full w-full rounded-none md:rounded-2xl overflow-hidden shadow-lg md:shadow-md border border-[var(--border-subtle)] bg-[var(--sidebar-bg)]">
+        <Sidebar />
+      </div>
     </div>
     
     <!-- 右侧内容区 -->
     <div 
       class="flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300"
-      :class="[
-        appStore.isMobile ? 'ml-0' : (appStore.sidebarCollapsed ? 'md:ml-0' : 'md:ml-0')
-      ]"
     >
       <!-- 顶部导航栏 -->
-      <Navbar />
+      <div class="px-0 md:px-4 pt-0 md:pt-4">
+        <div class="rounded-none md:rounded-2xl border-b md:border border-[var(--border-subtle)] bg-[var(--sidebar-bg)] shadow-sm md:shadow-sm overflow-hidden">
+          <Navbar />
+        </div>
+      </div>
       
       <!-- 主要内容区域 -->
-      <div class="flex-1 overflow-auto transition-colors duration-300" style="background-color: var(--el-bg-color-page);">
+      <div class="flex-1 overflow-auto transition-colors duration-300 p-4 md:p-6">
         <AppMain />
       </div>
     </div>

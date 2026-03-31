@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, cast, String
 from app.api import deps
 from app.models.item import Item
 from app.models.transaction import Transaction
@@ -24,7 +24,10 @@ def read_transactions(
 ) -> Any:
     query = db.query(Transaction)
     if search:
-        query = query.filter(or_(Transaction.item_name.contains(search), Transaction.remark.contains(search)))
+        search_filters = [Transaction.item_name.contains(search)]
+        if search.isdigit():
+            search_filters.append(Transaction.item_id == int(search))
+        query = query.filter(or_(*search_filters))
     if type:
         query = query.filter(Transaction.type == type)
     if start_date:

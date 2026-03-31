@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, computed, ref, onMounted } from 'vue'
-import { Search, Plus, Edit, Delete, View, Download } from '@element-plus/icons-vue'
+import { Search, Plus, Edit, Delete, View, Download, Minus } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { useInventoryStore } from '@/store/inventory'
 import { useMetadataStore } from '@/store/metadata'
@@ -43,7 +43,13 @@ onMounted(() => {
 })
 
 const fetchData = () => {
-  inventoryStore.fetchItems(searchForm.keyword, searchForm.category, (page.value - 1) * pageSize.value, pageSize.value)
+  inventoryStore.fetchItems(
+    searchForm.keyword,
+    searchForm.category,
+    searchForm.brand,
+    (page.value - 1) * pageSize.value,
+    pageSize.value
+  )
 }
 
 const tableData = computed(() => inventoryStore.items)
@@ -239,85 +245,115 @@ const handleDelete = (row: any) => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-4">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">库存管理</h1>
-      <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-        <el-button type="primary" :icon="Plus" @click="handleInbound" class="flex-1 sm:flex-none">入库</el-button>
-        <el-button type="warning" :icon="Plus" @click="handleOutbound" class="flex-1 sm:flex-none">出库</el-button>
+  <div class="h-full max-w-7xl mx-auto flex flex-col gap-6">
+    <!-- 头部区域 -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)]">
+      <div>
+        <h1 class="text-2xl font-bold text-[var(--text-main)] font-display tracking-tight">库存管理</h1>
+        <p class="text-sm text-[var(--text-muted)] mt-1">管理您的所有物品库存、入库与出库操作</p>
+      </div>
+      <div class="flex flex-wrap gap-3 w-full sm:w-auto">
+        <el-button type="primary" :icon="Plus" @click="handleInbound" class="flex-1 sm:flex-none !rounded-xl !h-10 font-medium shadow-sm shadow-blue-500/20">入库</el-button>
+        <el-button type="warning" :icon="Plus" @click="handleOutbound" class="flex-1 sm:flex-none !rounded-xl !h-10 font-medium shadow-sm shadow-orange-500/20">出库</el-button>
       </div>
     </div>
 
-    <el-card shadow="hover" class="border-none" style="background-color: var(--el-bg-color-overlay);">
-      <el-form :model="searchForm" label-width="60px" label-position="left">
-        <el-row :gutter="20">
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="关键词" class="!mb-4 lg:!mb-0">
-              <el-input v-model="searchForm.keyword" placeholder="物品名称/ID" :prefix-icon="Search" class="w-full" clearable />
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="分类" class="!mb-4 lg:!mb-0">
-              <el-select v-model="searchForm.category" placeholder="全部分类" clearable class="w-full">
-                <el-option v-for="item in categories" :key="item.id" :label="item.name" :value="item.name" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="品牌" class="!mb-4 lg:!mb-0">
-              <el-select v-model="searchForm.brand" placeholder="全部品牌" clearable class="w-full">
-                <el-option v-for="item in brands" :key="item.id" :label="item.name" :value="item.name" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="24" :md="24" :lg="6" class="flex flex-wrap justify-end items-center gap-2 mt-2 lg:mt-0">
-            <el-button type="primary" @click="handleSearch" class="flex-1 sm:flex-none">查询</el-button>
-            <el-button @click="handleReset" class="flex-1 sm:flex-none">重置</el-button>
-            <el-button type="success" :icon="Download" @click="handleExport" class="w-full sm:w-auto mt-2 sm:mt-0">导出 Excel</el-button>
-          </el-col>
-        </el-row>
+    <div class="bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] p-6">
+      <el-form :model="searchForm" class="flex flex-wrap items-center gap-3 w-full" @submit.prevent="handleSearch">
+        <el-form-item class="!mb-0 !mr-0">
+          <el-input v-model="searchForm.keyword" placeholder="搜索物品名称/ID" :prefix-icon="Search" class="!w-60 !rounded-xl" clearable @clear="handleSearch" />
+        </el-form-item>
+        <el-form-item class="!mb-0 !mr-0">
+          <el-select v-model="searchForm.category" placeholder="全部分类" clearable class="!w-40 !rounded-xl" @change="handleSearch">
+            <el-option v-for="item in categories" :key="item.id" :label="item.name" :value="item.name" />
+          </el-select>
+        </el-form-item>
+        <el-form-item class="!mb-0 !mr-0">
+          <el-select v-model="searchForm.brand" placeholder="全部品牌" clearable class="!w-40 !rounded-xl" @change="handleSearch">
+            <el-option v-for="item in brands" :key="item.id" :label="item.name" :value="item.name" />
+          </el-select>
+        </el-form-item>
+        <el-form-item class="!mb-0 !mr-0 ml-auto">
+          <div class="flex items-center gap-2">
+            <el-button type="primary" @click="handleSearch" class="!rounded-xl !h-10 font-medium px-6">查询</el-button>
+            <el-button @click="handleReset" class="!rounded-xl !h-10 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent px-6">重置</el-button>
+            <el-button type="success" :icon="Download" @click="handleExport" class="!rounded-xl !h-10 font-medium shadow-sm shadow-green-500/20 px-6">导出 Excel</el-button>
+          </div>
+        </el-form-item>
       </el-form>
-    </el-card>
+    </div>
 
-    <el-card shadow="hover" class="flex-1 flex flex-col border-none" style="background-color: var(--el-bg-color-overlay);" :body-style="{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }">
-      <el-table :data="tableData" stripe style="width: 100%; flex: 1;" height="100%">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="name" label="物品名称" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="category" label="分类" width="120" />
-        <el-table-column prop="brand" label="品牌" width="120" />
-        <el-table-column prop="price" label="单价 (元)" width="120" align="right">
+    <!-- 表格数据区 -->
+    <div class="flex-1 flex flex-col bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] p-6 overflow-hidden">
+      <el-table 
+        :data="tableData" 
+        v-loading="inventoryStore.loading"
+        style="width: 100%; flex: 1;"
+        height="100%"
+        class="custom-table"
+        :header-cell-style="{ background: 'var(--el-fill-color-light)', color: 'var(--text-main)', fontWeight: '600', height: '48px' }"
+      >
+        <el-table-column prop="id" label="ID" width="80" align="center" />
+        <el-table-column prop="name" label="物品名称" min-width="180" show-overflow-tooltip>
           <template #default="{ row }">
-            ¥{{ row.price.toFixed(2) }}
+            <div class="font-bold text-[var(--text-main)]">{{ row.name }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="quantity" label="当前库存" width="120" align="right">
+        <el-table-column prop="category" label="分类" width="130">
           <template #default="{ row }">
-            <span :class="{'text-red-500 font-bold': row.quantity < row.low_stock_threshold}">
-              {{ row.quantity }} {{ row.unit }}
-              <el-tag v-if="row.quantity < row.low_stock_threshold" type="danger" size="small" effect="plain" class="ml-1">预警</el-tag>
-            </span>
+            <el-tag size="small" type="info" class="!rounded-md !border-none !bg-gray-100 dark:!bg-gray-800 dark:!text-gray-300">{{ row.category }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="总价值 (元)" width="140" align="right">
+        <el-table-column prop="brand" label="品牌" width="130">
           <template #default="{ row }">
-            ¥{{ (row.price * row.quantity).toFixed(2) }}
+            <span class="text-[var(--text-muted)]">{{ row.brand || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="price" label="单价 (元)" width="130" align="right">
+          <template #default="{ row }">
+            <span class="font-medium text-[var(--text-main)]">¥{{ row.price.toFixed(2) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="quantity" label="当前库存" width="140" align="right">
+          <template #default="{ row }">
+            <div class="flex items-center justify-end gap-2">
+              <el-tag v-if="row.quantity < row.low_stock_threshold" type="danger" size="small" class="!rounded-md !border-none !bg-red-100 dark:!bg-red-900/30">预警</el-tag>
+              <span class="font-bold" :class="row.quantity < row.low_stock_threshold ? 'text-red-500' : 'text-green-500'">
+                {{ row.quantity }} <span class="text-xs font-normal opacity-70">{{ row.unit }}</span>
+              </span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="总价值 (元)" width="150" align="right">
+          <template #default="{ row }">
+            <span class="font-bold text-blue-500">¥{{ (row.price * row.quantity).toFixed(2) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="updated_at" label="最后更新时间" width="180">
           <template #default="{ row }">
-            {{ row.updated_at ? new Date(row.updated_at.endsWith('Z') || row.updated_at.includes('+') ? row.updated_at : row.updated_at + 'Z').toLocaleString('zh-CN', { hour12: false }) : '-' }}
+            <span class="text-[var(--text-muted)] text-sm">
+              {{ row.updated_at ? new Date(row.updated_at.endsWith('Z') || row.updated_at.includes('+') ? row.updated_at : row.updated_at + 'Z').toLocaleString('zh-CN', { hour12: false }) : '-' }}
+            </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="260" fixed="right">
+        <el-table-column label="操作" width="140" fixed="right" align="center">
           <template #default="scope">
-            <el-button size="small" :icon="View" @click="handleView(scope.row)">详情</el-button>
-            <el-button size="small" type="primary" :icon="Edit" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button size="small" type="danger" :icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
+            <div class="flex items-center justify-center gap-2">
+              <el-tooltip content="详情" placement="top">
+                <el-button circle size="small" :icon="View" @click="handleView(scope.row)" class="!bg-gray-100 hover:!bg-gray-200 dark:!bg-gray-800 dark:hover:!bg-gray-700 !border-transparent text-gray-600 dark:text-gray-300" />
+              </el-tooltip>
+              <el-tooltip content="编辑" placement="top">
+                <el-button circle size="small" type="primary" :icon="Edit" @click="handleEdit(scope.row)" class="!bg-blue-50 hover:!bg-blue-100 dark:!bg-blue-900/30 dark:hover:!bg-blue-900/50 !border-transparent !text-blue-500" />
+              </el-tooltip>
+              <el-tooltip content="删除" placement="top">
+                <el-button circle size="small" type="danger" :icon="Delete" @click="handleDelete(scope.row)" class="!bg-red-50 hover:!bg-red-100 dark:!bg-red-900/30 dark:hover:!bg-red-900/50 !border-transparent !text-red-500" />
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
       </el-table>
 
-      <div class="pt-4 mt-4 flex justify-end border-t" style="border-color: var(--el-border-color-lighter);">
+      <div class="p-4 flex justify-end border-t border-[var(--border-subtle)] bg-[var(--card-bg)]">
         <el-pagination
           v-model:current-page="page"
           v-model:page-size="pageSize"
@@ -327,111 +363,150 @@ const handleDelete = (row: any) => {
           :page-sizes="[10, 20, 50, 100]"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
+          class="custom-pagination"
         />
       </div>
-    </el-card>
+    </div>
 
     <!-- 详情抽屉 -->
     <el-drawer
       v-model="detailVisible"
       title="物品详情"
-      :size="appStore.isMobile ? '90%' : '400px'"
+      :size="appStore.isMobile ? '90%' : '440px'"
       destroy-on-close
+      class="custom-drawer"
     >
-      <div v-if="currentItem" class="flex flex-col gap-6">
+      <div v-if="currentItem" class="flex flex-col gap-8">
         <!-- 物品图片 -->
-        <div class="flex justify-center">
+        <div class="flex justify-center p-4 bg-[var(--page-bg)] rounded-2xl border border-[var(--border-subtle)]">
           <el-image
             v-if="currentItem.image_url"
             :src="currentItem.image_url"
-            class="w-48 h-48 rounded-lg shadow-sm object-cover"
+            class="w-56 h-56 rounded-xl shadow-md object-cover border-4 border-white dark:border-gray-800"
             :preview-src-list="[currentItem.image_url]"
             fit="cover"
           />
-          <div v-else class="w-48 h-48 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-gray-400">
-            暂无图片
+          <div v-else class="w-56 h-56 bg-gray-100 dark:bg-gray-800 rounded-xl flex flex-col items-center justify-center text-gray-400 border border-dashed border-gray-300">
+            <el-icon size="32" class="mb-2"><View /></el-icon>
+            <span class="text-sm">暂无图片</span>
           </div>
         </div>
 
         <!-- 基本信息 -->
-        <el-descriptions title="基本信息" :column="1" border size="small">
-          <el-descriptions-item label="物品ID">{{ currentItem.id }}</el-descriptions-item>
-          <el-descriptions-item label="物品名称">{{ currentItem.name }}</el-descriptions-item>
-          <el-descriptions-item label="分类">{{ currentItem.category }}</el-descriptions-item>
-          <el-descriptions-item label="品牌">{{ currentItem.brand || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="物品链接">
-            <a v-if="currentItem.item_link" :href="currentItem.item_link" target="_blank" class="text-blue-500 hover:underline">{{ currentItem.item_link }}</a>
-            <span v-else>-</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="单价">¥{{ currentItem.price.toFixed(2) }}</el-descriptions-item>
-          <el-descriptions-item label="当前库存">
-            <span :class="{'text-red-500 font-bold': currentItem.quantity < currentItem.low_stock_threshold}">
-              {{ currentItem.quantity }} {{ currentItem.unit }}
-            </span>
-          </el-descriptions-item>
-          <el-descriptions-item label="预警阈值">{{ currentItem.low_stock_threshold }} {{ currentItem.unit }}</el-descriptions-item>
-          <el-descriptions-item label="备注">{{ currentItem.remark || '无' }}</el-descriptions-item>
-        </el-descriptions>
+        <div class="space-y-4">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-1 h-4 bg-blue-500 rounded-full"></div>
+            <h3 class="text-base font-bold text-[var(--text-main)]">基本信息</h3>
+          </div>
+          <el-descriptions :column="1" border size="default" class="custom-descriptions">
+            <el-descriptions-item label="物品ID">
+              <span class="font-mono text-gray-500">{{ currentItem.id }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="物品名称">
+              <span class="font-bold text-[var(--text-main)]">{{ currentItem.name }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="分类">
+              <el-tag size="small" type="info" class="!rounded-md !border-none !bg-gray-100 dark:!bg-gray-800 dark:!text-gray-300">{{ currentItem.category }}</el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="品牌">
+              <span class="text-[var(--text-muted)]">{{ currentItem.brand || '-' }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="物品链接">
+              <el-link v-if="currentItem.item_link" :href="currentItem.item_link" target="_blank" type="primary" class="!text-sm">查看购买链接</el-link>
+              <span v-else class="text-gray-400">-</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="单价">
+              <span class="text-lg font-bold text-orange-500">¥{{ currentItem.price.toFixed(2) }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="当前库存">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-lg" :class="currentItem.quantity < currentItem.low_stock_threshold ? 'text-red-500' : 'text-green-500'">
+                  {{ currentItem.quantity }} <span class="text-sm font-normal text-gray-400">{{ currentItem.unit }}</span>
+                </span>
+                <el-tag v-if="currentItem.quantity < currentItem.low_stock_threshold" type="danger" size="small" class="!rounded-md">库存预警</el-tag>
+              </div>
+            </el-descriptions-item>
+            <el-descriptions-item label="预警阈值">
+              <span class="text-gray-600 dark:text-gray-400">{{ currentItem.low_stock_threshold }} {{ currentItem.unit }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="备注">
+              <span class="text-gray-500 italic">{{ currentItem.remark || '无备注信息' }}</span>
+            </el-descriptions-item>
+          </el-descriptions>
+        </div>
 
         <!-- 历史记录 -->
-        <div>
-          <h3 class="text-base font-bold text-gray-800 dark:text-gray-100 mb-3">近期流转记录</h3>
-          <el-timeline>
-            <el-timeline-item
-              v-for="record in itemRecords.slice(0, 5)"
-              :key="record.id"
-              :type="record.type === 'in' ? 'success' : 'warning'"
-              :timestamp="record.time"
-              placement="top"
-            >
-              <div class="flex justify-between items-center">
-                <span class="font-medium text-gray-700 dark:text-gray-300">
-                  {{ record.type === 'in' ? '入库' : '出库' }}
-                </span>
-                <span :class="record.type === 'in' ? 'text-green-500' : 'text-orange-500'" class="font-bold">
-                  {{ record.type === 'in' ? '+' : '-' }}{{ record.quantity }} {{ currentItem.unit }}
-                </span>
-              </div>
-            </el-timeline-item>
-            <el-timeline-item v-if="itemRecords.length === 0" hide-timestamp>
-              <span class="text-gray-400">暂无记录</span>
-            </el-timeline-item>
-          </el-timeline>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="w-1 h-4 bg-purple-500 rounded-full"></div>
+              <h3 class="text-base font-bold text-[var(--text-main)]">近期流转记录</h3>
+            </div>
+            <span class="text-xs text-[var(--text-muted)]">显示最近5条</span>
+          </div>
+          <div class="bg-[var(--page-bg)] p-4 rounded-2xl border border-[var(--border-subtle)]">
+            <el-timeline class="!pl-1">
+              <el-timeline-item
+                v-for="record in itemRecords.slice(0, 5)"
+                :key="record.id"
+                :type="record.type === 'in' ? 'success' : 'warning'"
+                :timestamp="new Date(record.time).toLocaleString()"
+                placement="top"
+              >
+                <div class="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded-xl border border-[var(--border-subtle)] shadow-sm">
+                  <div class="flex items-center gap-2">
+                    <div :class="record.type === 'in' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'" class="p-1.5 rounded-lg">
+                      <el-icon size="14"><Plus v-if="record.type === 'in'" /><Minus v-else /></el-icon>
+                    </div>
+                    <span class="font-bold text-sm text-[var(--text-main)]">
+                      {{ record.type === 'in' ? '入库' : '出库' }}
+                    </span>
+                  </div>
+                  <span :class="record.type === 'in' ? 'text-green-500' : 'text-orange-500'" class="font-bold font-mono">
+                    {{ record.type === 'in' ? '+' : '-' }}{{ record.quantity }}
+                  </span>
+                </div>
+              </el-timeline-item>
+              <el-timeline-item v-if="itemRecords.length === 0" hide-timestamp>
+                <div class="text-gray-400 text-center py-4 italic">暂无流转记录</div>
+              </el-timeline-item>
+            </el-timeline>
+          </div>
         </div>
       </div>
     </el-drawer>
 
     <!-- 编辑弹窗 -->
-    <el-dialog v-model="editVisible" title="编辑物品信息" :width="appStore.isMobile ? '90%' : '500px'" destroy-on-close>
+    <el-dialog v-model="editVisible" title="编辑物品信息" :width="appStore.isMobile ? '90%' : '500px'" destroy-on-close class="!rounded-2xl">
       <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="90px" :label-position="appStore.isMobile ? 'top' : 'left'">
-        <el-form-item label="物品名称" prop="name">
-          <el-input v-model="editForm.name" placeholder="请输入物品名称" />
+        <el-form-item label="物品名称" prop="name" class="font-medium">
+          <el-input v-model="editForm.name" placeholder="请输入物品名称" class="!rounded-xl" />
         </el-form-item>
-        <el-form-item label="分类" prop="category">
-          <el-select v-model="editForm.category" placeholder="请选择分类" class="w-full">
+        <el-form-item label="分类" prop="category" class="font-medium">
+          <el-select v-model="editForm.category" placeholder="请选择分类" class="w-full !rounded-xl">
             <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
           </el-select>
         </el-form-item>
-        <el-form-item label="品牌" prop="brand">
-          <el-select v-model="editForm.brand" placeholder="请选择品牌(可选)" clearable class="w-full">
+        <el-form-item label="品牌" prop="brand" class="font-medium">
+          <el-select v-model="editForm.brand" placeholder="请选择品牌(可选)" clearable class="w-full !rounded-xl">
             <el-option v-for="b in brands" :key="b.id" :label="b.name" :value="b.name" />
           </el-select>
         </el-form-item>
-        <el-form-item label="单价" prop="price">
-          <el-input-number v-model="editForm.price" :min="0" :precision="2" :step="0.1" class="w-full" />
+        <el-form-item label="单价" prop="price" class="font-medium">
+          <el-input-number v-model="editForm.price" :min="0" :precision="2" :step="0.1" class="w-full !rounded-xl" />
         </el-form-item>
-        <el-form-item label="计量单位" prop="unit">
-          <el-input v-model="editForm.unit" placeholder="如：个、台、箱" />
+        <el-form-item label="计量单位" prop="unit" class="font-medium">
+          <el-input v-model="editForm.unit" placeholder="如：个、台、箱" class="!rounded-xl" />
         </el-form-item>
-        <el-form-item label="预警阈值" prop="low_stock_threshold">
-          <el-input-number v-model="editForm.low_stock_threshold" :min="0" :step="1" class="w-full" />
+        <el-form-item label="预警阈值" prop="low_stock_threshold" class="font-medium">
+          <el-input-number v-model="editForm.low_stock_threshold" :min="0" :step="1" class="w-full !rounded-xl" />
         </el-form-item>
-        <el-form-item label="物品链接" prop="item_link">
-          <el-input v-model="editForm.item_link" placeholder="请输入物品购买或参考链接(可选)" />
+        <el-form-item label="物品链接" prop="item_link" class="font-medium">
+          <el-input v-model="editForm.item_link" placeholder="请输入物品购买或参考链接(可选)" class="!rounded-xl" />
         </el-form-item>
-        <el-form-item label="物品图片">
+        <el-form-item label="物品图片" class="font-medium">
           <div class="flex flex-col gap-2 w-full">
-            <el-radio-group v-model="editForm.imageType" size="small" @change="editForm.image_url = ''">
+            <el-radio-group v-model="editForm.imageType" size="small" @change="editForm.image_url = ''" class="!rounded-xl">
               <el-radio-button label="link">图片链接</el-radio-button>
               <el-radio-button label="file">本地上传</el-radio-button>
             </el-radio-group>
@@ -440,6 +515,7 @@ const handleDelete = (row: any) => {
               v-if="editForm.imageType === 'link'" 
               v-model="editForm.image_url" 
               placeholder="请输入图片URL链接" 
+              class="!rounded-xl"
             />
             
             <div v-else class="flex flex-col gap-1">
@@ -450,25 +526,25 @@ const handleDelete = (row: any) => {
                 :auto-upload="false"
                 :on-change="handleImageChange"
               >
-                <div v-if="editForm.image_url" class="w-32 h-32 border border-gray-300 rounded overflow-hidden">
+                <div v-if="editForm.image_url" class="w-32 h-32 border border-[var(--border-subtle)] rounded-xl overflow-hidden shadow-sm">
                   <img :src="editForm.image_url" class="w-full h-full object-cover" />
                 </div>
-                <div v-else class="w-32 h-32 border border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
+                <div v-else class="w-32 h-32 border border-dashed border-[var(--border-subtle)] rounded-xl flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
                     <el-icon class="text-2xl text-gray-400"><Plus /></el-icon>
                 </div>
               </el-upload>
-              <div class="text-xs text-gray-500">支持 {{ systemStore.settings.upload.allowed_extensions.join('/') }} 格式，不超过 {{ systemStore.settings.upload.max_size_mb }}MB</div>
+              <div class="text-xs text-[var(--text-muted)]">支持 {{ systemStore.settings.upload.allowed_extensions.join('/') }} 格式，不超过 {{ systemStore.settings.upload.max_size_mb }}MB</div>
             </div>
           </div>
         </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="editForm.remark" type="textarea" placeholder="请输入备注信息(可选)" />
+        <el-form-item label="备注" prop="remark" class="font-medium">
+          <el-input v-model="editForm.remark" type="textarea" placeholder="请输入备注信息(可选)" class="!rounded-xl" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="editVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitEdit">确定</el-button>
+        <span class="flex justify-end gap-3 pt-4 border-t border-[var(--border-subtle)]">
+          <el-button @click="editVisible = false" class="!rounded-xl !h-10 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent">取消</el-button>
+          <el-button type="primary" @click="submitEdit" class="!rounded-xl !h-10 font-medium shadow-sm shadow-blue-500/20">确定</el-button>
         </span>
       </template>
     </el-dialog>

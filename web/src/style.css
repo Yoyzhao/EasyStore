@@ -1,21 +1,76 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #409EFF;
-  --color-success: #67C23A;
-  --color-warning: #E6A23C;
-  --color-danger: #F56C6C;
-  --color-info: #909399;
+  --color-primary: #3b82f6; /* A brighter modern blue */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #6b7280;
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --page-bg: #f3f4f6;
+  --sidebar-bg: #ffffff;
+  --card-bg: #ffffff;
+  --border-subtle: #e5e7eb;
+  --text-main: #111827;
+  --text-muted: #6b7280;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+html.dark {
+  color-scheme: dark;
+  --page-bg: #0f1115;
+  --sidebar-bg: #1a1d24;
+  --card-bg: #1a1d24;
+  --border-subtle: #2d313a;
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
 }
 
 html, body, #app {
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color: var(--page-bg);
+  color: var(--text-main);
+  font-family: var(--font-sans);
 }
 
-/* 适配 Element Plus 暗黑模式 */
-html.dark {
-  color-scheme: dark;
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: var(--font-display);
+}
+
+/* Override Element Plus base styles to be more modern */
+:root {
+  --el-color-primary: #3b82f6 !important;
+  --el-border-radius-base: 8px !important;
+  --el-border-radius-small: 6px !important;
+  --el-border-radius-round: 20px !important;
+  --el-box-shadow-light: var(--shadow-sm) !important;
+  --el-box-shadow: var(--shadow-md) !important;
+}
+
+/* Global scrollbar for sleek look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 

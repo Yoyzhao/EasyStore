@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, cast, String
 from app.api import deps
 from app.models.item import Item
 from app.schemas.item import Item as ItemSchema, ItemCreate, ItemUpdate, ItemPagination
@@ -16,13 +16,19 @@ def read_items(
     limit: int = 100,
     search: Optional[str] = None,
     category: Optional[str] = None,
+    brand: Optional[str] = None,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     query = db.query(Item)
     if search:
-        query = query.filter(or_(Item.name.contains(search), Item.remark.contains(search)))
+        search_filters = [Item.name.contains(search)]
+        if search.isdigit():
+            search_filters.append(Item.id == int(search))
+        query = query.filter(or_(*search_filters))
     if category:
         query = query.filter(Item.category == category)
+    if brand:
+        query = query.filter(Item.brand == brand)
     
     total = query.count()
     items = query.offset(skip).limit(limit).all()

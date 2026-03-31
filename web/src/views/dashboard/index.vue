@@ -124,61 +124,68 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="h-full max-w-7xl mx-auto flex flex-col gap-6">
+    <!-- 头部区域 -->
+    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-[var(--text-main)] font-display tracking-tight">控制面板</h1>
+        <p class="text-sm text-[var(--text-muted)] mt-1">快速了解系统状态与库存概览</p>
+      </div>
+    </div>
+
     <!-- 核心数据卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
-      <el-card v-for="(item, index) in coreData" :key="index" shadow="hover" class="border-none transition-all duration-300 hover:-translate-y-1" style="background-color: var(--el-bg-color-overlay);">
-        <div class="flex items-center p-2 sm:p-0">
-          <div :class="[item.color, 'p-3 sm:p-4 rounded-xl mr-3 sm:mr-4 flex-shrink-0', !isDark ? item.bg : '']" :style="{ backgroundColor: isDark ? item.darkBg : '' }">
-            <el-icon :size="24"><component :is="item.icon" /></el-icon>
+      <div v-for="(item, index) in coreData" :key="index" class="bg-[var(--card-bg)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-[var(--border-subtle)] relative overflow-hidden group">
+        <!-- 装饰性背景图形 -->
+        <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 group-hover:scale-150 transition-transform duration-500 ease-out" :class="item.bg.replace('100', '500')"></div>
+        
+        <div class="flex items-center relative z-10">
+          <div :class="[item.color, 'p-4 rounded-2xl mr-4 flex-shrink-0 flex items-center justify-center', isDark ? 'bg-opacity-20' : item.bg]" :style="isDark ? { backgroundColor: item.darkBg } : {}">
+            <el-icon :size="26"><component :is="item.icon" /></el-icon>
           </div>
-          <div class="min-w-0">
-            <div class="text-xs sm:text-sm mb-1 truncate" style="color: var(--el-text-color-regular)">{{ item.title }}</div>
-            <div class="text-xl sm:text-2xl font-bold truncate" style="color: var(--el-text-color-primary)">
-              <span v-if="item.title === '总库存价值'" class="text-base sm:text-lg mr-0.5">￥</span>
+          <div class="min-w-0 flex-1">
+            <div class="text-sm mb-1 truncate text-[var(--text-muted)] font-medium">{{ item.title }}</div>
+            <div class="text-2xl sm:text-3xl font-bold truncate text-[var(--text-main)] font-display tracking-tight">
+              <span v-if="item.title === '总库存价值'" class="text-lg mr-0.5">￥</span>
               {{ item.value }}
-              <span v-if="item.unit" class="text-xs sm:text-sm ml-1 font-normal opacity-70" style="color: var(--el-text-color-secondary)">{{ item.unit }}</span>
+              <span v-if="item.unit" class="text-sm ml-1 font-medium text-[var(--text-muted)]">{{ item.unit }}</span>
             </div>
           </div>
         </div>
-      </el-card>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
       <!-- 趋势图 -->
-      <el-card shadow="hover" class="xl:col-span-2 border-none transition-colors duration-300" style="background-color: var(--el-bg-color-overlay);">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <div class="font-bold text-base sm:text-lg" style="color: var(--el-text-color-primary)">近期出入库趋势</div>
-          </div>
-        </template>
+      <div class="xl:col-span-2 bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] p-6 transition-colors duration-300">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="font-bold text-lg text-[var(--text-main)] font-display">近期出入库趋势</h2>
+        </div>
         <div ref="chartRef" class="h-64 sm:h-80 w-full"></div>
-      </el-card>
+      </div>
 
       <!-- 最新操作记录 -->
-      <el-card shadow="hover" class="border-none transition-colors duration-300" style="background-color: var(--el-bg-color-overlay);">
-        <template #header>
-          <div class="font-bold text-base sm:text-lg" style="color: var(--el-text-color-primary)">最新操作记录</div>
-        </template>
-        <div class="space-y-4">
-          <div v-for="record in recentRecords" :key="record.id" class="flex items-start pb-4 border-b last:border-0 last:pb-0" style="border-color: var(--el-border-color-light)">
-            <el-tag :type="record.type === '入库' ? 'success' : 'warning'" size="small" class="mr-3 flex-shrink-0 rounded-md px-2">
-              {{ record.type }}
-            </el-tag>
+      <div class="bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] p-6 transition-colors duration-300 flex flex-col">
+        <h2 class="font-bold text-lg text-[var(--text-main)] font-display mb-6">最新操作记录</h2>
+        <div class="space-y-5 flex-1 overflow-y-auto custom-scrollbar pr-2">
+          <div v-for="record in recentRecords" :key="record.id" class="flex items-center group">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mr-4" :class="record.type === '入库' ? 'bg-green-100 text-green-600 dark:bg-green-900/30' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30'">
+              <el-icon :size="18"><component :is="record.type === '入库' ? 'Bottom' : 'Top'" /></el-icon>
+            </div>
             <div class="flex-1 min-w-0">
-              <div class="text-sm font-semibold truncate" style="color: var(--el-text-color-primary)">
+              <div class="text-sm font-bold truncate text-[var(--text-main)] group-hover:text-blue-500 transition-colors">
                 {{ record.item }}
               </div>
-              <div class="text-xs mt-1 opacity-70" style="color: var(--el-text-color-secondary)">
-                {{ record.operator }} · {{ record.time }}
+              <div class="text-xs mt-1 text-[var(--text-muted)] flex items-center gap-1">
+                <el-icon><User /></el-icon>{{ record.operator }} <span class="mx-1">·</span> {{ record.time }}
               </div>
             </div>
-            <div class="text-sm font-bold ml-2 whitespace-nowrap" :class="record.type === '入库' ? 'text-green-500' : 'text-orange-500'">
+            <div class="text-base font-bold ml-3 whitespace-nowrap" :class="record.type === '入库' ? 'text-green-500' : 'text-orange-500'">
               {{ record.type === '入库' ? '+' : '-' }}{{ record.qty }}
             </div>
           </div>
         </div>
-      </el-card>
+      </div>
     </div>
   </div>
 </template>

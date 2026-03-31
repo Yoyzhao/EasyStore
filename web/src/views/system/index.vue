@@ -131,40 +131,48 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-4">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">系统设置</h1>
+  <div class="h-full max-w-7xl mx-auto flex flex-col gap-6">
+    <!-- 头部区域 -->
+    <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-[var(--text-main)] font-display tracking-tight">系统设置</h1>
+        <p class="text-sm text-[var(--text-muted)] mt-1">管理系统参数与数据备份恢复</p>
+      </div>
     </div>
 
-    <el-card shadow="hover" class="flex-1 flex flex-col border-none" style="background-color: var(--el-bg-color-overlay);" :body-style="{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }">
+    <div class="flex-1 bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col min-h-0">
       <div class="h-full overflow-auto">
-        <el-tabs v-model="activeTab" class="system-tabs h-full flex flex-col">
+        <el-tabs v-model="activeTab" class="system-tabs h-full flex flex-col custom-tabs">
           
           <!-- 常规设置 / 上传设置 -->
           <el-tab-pane label="常规参数" name="general" class="h-full overflow-auto">
-            <div class="py-4 px-2 sm:px-6 max-w-3xl" v-loading="loadingSettings">
+            <div class="py-6 px-2 sm:px-6 max-w-3xl" v-loading="loadingSettings">
               <el-form 
                 ref="settingsFormRef" 
                 :model="settingsForm" 
-                label-width="140px" 
+                label-width="160px" 
                 :label-position="appStore.isMobile ? 'top' : 'left'"
+                class="mt-4"
               >
-                <div class="font-bold text-lg mb-4 mt-2" style="color: var(--el-text-color-primary)">上传限制设置</div>
+                <div class="flex items-center gap-2 mb-6 mt-2">
+                  <div class="w-1 h-5 bg-blue-500 rounded-full"></div>
+                  <div class="font-bold text-lg text-[var(--text-main)]">上传限制设置</div>
+                </div>
                 
-                <el-form-item label="最大文件大小 (MB)" prop="upload.max_size_mb">
+                <el-form-item label="最大文件大小 (MB)" prop="upload.max_size_mb" class="font-medium">
                   <el-input-number 
                     v-model="settingsForm.upload.max_size_mb" 
                     :min="1" 
                     :max="100" 
                     :step="1"
-                    class="!w-48"
+                    class="!w-48 !rounded-xl"
                   />
-                  <div class="ml-4 text-xs" style="color: var(--el-text-color-secondary)">
+                  <div class="w-full text-xs mt-2 text-[var(--text-muted)] font-normal">
                     控制系统允许上传的单个文件最大体积
                   </div>
                 </el-form-item>
                 
-                <el-form-item label="允许的格式后缀" prop="upload.allowed_extensions">
+                <el-form-item label="允许的格式后缀" prop="upload.allowed_extensions" class="font-medium">
                   <el-select
                     v-model="settingsForm.upload.allowed_extensions"
                     multiple
@@ -172,7 +180,7 @@ onMounted(() => {
                     allow-create
                     default-first-option
                     placeholder="请选择或输入允许的格式"
-                    class="!w-full max-w-md"
+                    class="!w-full max-w-md !rounded-xl custom-select"
                   >
                     <el-option
                       v-for="ext in extensionOptions"
@@ -181,29 +189,32 @@ onMounted(() => {
                       :value="ext"
                     />
                   </el-select>
-                  <div class="w-full text-xs mt-1" style="color: var(--el-text-color-secondary)">
+                  <div class="w-full text-xs mt-2 text-[var(--text-muted)] font-normal">
                     控制系统允许上传的文件后缀类型，可直接输入并回车添加新类型
                   </div>
                 </el-form-item>
 
-                <div class="font-bold text-lg mb-4 mt-8" style="color: var(--el-text-color-primary)">访问控制设置</div>
+                <div class="flex items-center gap-2 mb-6 mt-10">
+                  <div class="w-1 h-5 bg-blue-500 rounded-full"></div>
+                  <div class="font-bold text-lg text-[var(--text-main)]">访问控制设置</div>
+                </div>
                 
-                <el-form-item label="允许外部访问" prop="access.allow_external_ip">
+                <el-form-item label="允许外部访问" prop="access.allow_external_ip" class="font-medium">
                   <el-switch
                     v-model="settingsForm.access.allow_external_ip"
                     active-text="允许"
                     inactive-text="仅本机"
                   />
-                  <div class="ml-4 text-xs" style="color: var(--el-text-color-secondary)">
+                  <div class="w-full text-xs mt-2 text-[var(--text-muted)] font-normal">
                     开启后，允许其他IP地址的设备访问本系统；关闭后，仅允许本机 (127.0.0.1 / localhost) 访问。
                   </div>
                 </el-form-item>
 
-                <el-form-item class="mt-8">
-                  <el-button type="primary" @click="saveSettings" :loading="savingSettings">
+                <el-form-item class="mt-10">
+                  <el-button type="primary" @click="saveSettings" :loading="savingSettings" class="!rounded-xl !h-11 font-medium shadow-sm shadow-blue-500/20 px-8 text-base">
                     保存设置
                   </el-button>
-                  <el-button @click="fetchSettings">重置修改</el-button>
+                  <el-button @click="fetchSettings" class="!rounded-xl !h-11 font-medium px-8 text-base hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent">重置修改</el-button>
                 </el-form-item>
               </el-form>
             </div>
@@ -211,38 +222,42 @@ onMounted(() => {
 
           <!-- 备份与恢复 -->
           <el-tab-pane label="备份与恢复" name="backup" class="h-full overflow-auto">
-            <div class="py-4 px-2 sm:px-6 max-w-5xl">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
+            <div class="py-8 px-2 sm:px-6 max-w-5xl">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                 
                 <!-- 备份卡片 -->
-                <div class="border rounded-lg p-6 flex flex-col h-full bg-blue-50 dark:bg-blue-950/20" style="border-color: var(--el-color-primary-light-7)">
-                  <div class="flex items-center mb-4 text-lg font-bold text-blue-600 dark:text-blue-500">
-                    <el-icon class="mr-2"><Download /></el-icon>
+                <div class="border rounded-2xl p-8 flex flex-col h-full bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30 hover:shadow-md transition-shadow">
+                  <div class="flex items-center mb-6 text-xl font-bold text-blue-600 dark:text-blue-400">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mr-3">
+                      <el-icon size="20"><Download /></el-icon>
+                    </div>
                     数据备份
                   </div>
-                  <p class="text-sm mb-6 flex-1" style="color: var(--el-text-color-regular)">
+                  <p class="text-[var(--text-muted)] leading-relaxed mb-8 flex-1">
                     将当前的数据库文件、系统配置以及所有上传的图片附件打包下载到本地。建议定期备份以防数据丢失。
                   </p>
                   <el-button 
                     type="primary" 
                     size="large" 
-                    class="w-full" 
+                    class="w-full !rounded-xl !h-12 font-medium shadow-sm shadow-blue-500/20 text-base" 
                     @click="handleBackup" 
                     :loading="downloading"
                   >
-                    <el-icon class="mr-2"><Download /></el-icon> 下载系统备份
+                    下载系统备份
                   </el-button>
                 </div>
 
                 <!-- 恢复卡片 -->
-                <div class="border rounded-lg p-6 flex flex-col h-full bg-red-50 dark:bg-red-950/20" style="border-color: var(--el-color-danger-light-7)">
-                  <div class="flex items-center mb-4 text-lg font-bold text-red-600 dark:text-red-500">
-                    <el-icon class="mr-2"><Upload /></el-icon>
+                <div class="border rounded-2xl p-8 flex flex-col h-full bg-red-50/50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 hover:shadow-md transition-shadow">
+                  <div class="flex items-center mb-6 text-xl font-bold text-red-600 dark:text-red-400">
+                    <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mr-3">
+                      <el-icon size="20"><Upload /></el-icon>
+                    </div>
                     数据恢复
                   </div>
-                  <p class="text-sm mb-6 flex-1" style="color: var(--el-text-color-regular)">
+                  <p class="text-[var(--text-muted)] leading-relaxed mb-8 flex-1">
                     上传之前下载的 <b>.zip</b> 备份文件进行数据恢复。
-                    <span class="text-red-500 font-bold block mt-1">警告：此操作将覆盖当前系统所有数据，请谨慎操作！</span>
+                    <span class="text-red-500 font-medium block mt-2 p-3 bg-red-100/50 dark:bg-red-900/20 rounded-lg">⚠️ 警告：此操作将覆盖当前系统所有数据，请谨慎操作！</span>
                   </p>
                   
                   <el-upload
@@ -256,10 +271,10 @@ onMounted(() => {
                     <el-button 
                       type="danger" 
                       size="large" 
-                      class="w-full"
+                      class="w-full !rounded-xl !h-12 font-medium shadow-sm shadow-red-500/20 text-base"
                       :loading="restoring"
                     >
-                      <el-icon class="mr-2"><Upload /></el-icon> 上传备份并恢复
+                      上传备份并恢复
                     </el-button>
                   </el-upload>
                 </div>
@@ -270,20 +285,40 @@ onMounted(() => {
           
         </el-tabs>
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .system-tabs :deep(.el-tabs__item) {
-  font-size: 16px;
+  font-size: 15px;
   padding: 0 24px;
+  height: 50px;
+  line-height: 50px;
+  font-weight: 500;
+  transition: all 0.3s;
 }
+
+.system-tabs :deep(.el-tabs__nav-wrap::after) {
+  height: 1px;
+  background-color: var(--border-subtle);
+}
+
+.system-tabs :deep(.el-tabs__active-bar) {
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+}
+
 .system-tabs :deep(.el-tabs__content) {
   flex: 1;
   overflow: hidden;
 }
 .upload-full :deep(.el-upload) {
   width: 100%;
+}
+
+/* 覆盖Select下拉多选标签的样式 */
+.custom-select :deep(.el-select__tags .el-tag) {
+  border-radius: 6px;
 }
 </style>
