@@ -36,6 +36,10 @@ def on_startup():
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 # Mount static files for uploads
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 

@@ -21,7 +21,7 @@ Thumbs.db
 # Electron
 electron/node_modules/
 electron/dist/
-electron/release/
+electron/release*/
 electron/web/
 
 # Server Build

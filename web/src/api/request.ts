@@ -2,8 +2,9 @@ import axios from 'axios'
 import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
 
+const isElectron = window.navigator.userAgent.toLowerCase().includes('electron')
 const request = axios.create({
-  baseURL: '/api/v1',
+  baseURL: isElectron ? 'http://localhost:8000/api/v1' : '/api/v1',
   timeout: 10000
 })
 

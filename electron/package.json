@@ -11,9 +11,10 @@
     "appId": "com.easystore.app",
     "productName": "EasyStore",
     "directories": {
-      "output": "release"
+      "output": "release_final"
     },
     "win": {
+      "icon": "icon.ico",
       "target": [
         "portable",
         "zip"
@@ -22,12 +23,13 @@
     "files": [
       "main.js",
       "package.json",
+      "icon.ico",
       "web/dist/**/*"
     ],
     "extraResources": [
       {
-        "from": "../server/dist/easystore-server.exe",
-        "to": "bin/easystore-server.exe"
+        "from": "../server/dist/easystore-server",
+        "to": "bin/easystore-server"
       }
     ]
   },

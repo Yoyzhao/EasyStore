@@ -21,7 +21,7 @@ function createWindow() {
       contextIsolation: false,
     },
     title: "EasyStore",
-    icon: path.join(__dirname, '../web/dist/favicon.svg'), // Use built-in icon if available
+    icon: path.join(__dirname, 'icon.ico'), // Use the ico file
   });
 
   // In production, load from the built web/dist folder
@@ -51,14 +51,14 @@ function startBackend() {
 
   if (isDev) {
     // In dev, we can run python directly or a pre-built exe
-    backendPath = path.join(__dirname, '../server/dist/easystore-server.exe');
+    backendPath = path.join(__dirname, '../server/dist/easystore-server/easystore-server.exe');
     if (!fs.existsSync(backendPath)) {
         console.log('Backend exe not found in dev, assuming manual python run');
         return;
     }
   } else {
     // In packaged app, exe is in the resources folder
-    backendPath = path.join(process.resourcesPath, 'bin', BACKEND_EXE);
+    backendPath = path.join(process.resourcesPath, 'bin', 'easystore-server', BACKEND_EXE);
   }
 
   console.log(`Starting backend at: ${backendPath}`);
@@ -84,7 +84,7 @@ function startBackend() {
 // Check if backend is alive
 async function checkBackendAlive() {
   try {
-    const response = await axios.get(`${backendUrl}/api/v1/system/settings`);
+    const response = await axios.get(`${backendUrl}/health`);
     return response.status === 200;
   } catch (error) {
     return false;
