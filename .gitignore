@@ -22,6 +22,7 @@ Thumbs.db
 build/
 data/db/*.sqlite3
 data/app_logs/
+data/uploads/
 
 .trae/
 docs/

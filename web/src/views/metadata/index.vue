@@ -171,7 +171,7 @@ const handleSubmit = async () => {
           <el-table :data="tableData" style="width: 100%; flex: 1" class="custom-table" :header-cell-style="{ background: 'var(--el-fill-color-light)', color: 'var(--text-main)', fontWeight: '600', height: '48px' }">
             <el-table-column prop="id" label="ID" width="80">
               <template #default="{ row }">
-                <span class="font-mono text-[var(--text-muted)] text-sm">{{ row.id }}</span>
+                <span class="font-mono text-[var(--text-muted)] text-sm"><span class="text-[10px] opacity-60 mr-0.5">ID:</span>{{ row.id }}</span>
               </template>
             </el-table-column>
             <el-table-column prop="name" label="名称" width="180">
@@ -204,7 +204,7 @@ const handleSubmit = async () => {
           <el-table :data="tableData" style="width: 100%; flex: 1" class="custom-table" :header-cell-style="{ background: 'var(--el-fill-color-light)', color: 'var(--text-main)', fontWeight: '600', height: '48px' }">
             <el-table-column prop="id" label="ID" width="80">
               <template #default="{ row }">
-                <span class="font-mono text-[var(--text-muted)] text-sm">{{ row.id }}</span>
+                <span class="font-mono text-[var(--text-muted)] text-sm"><span class="text-[10px] opacity-60 mr-0.5">ID:</span>{{ row.id }}</span>
               </template>
             </el-table-column>
             <el-table-column prop="name" label="名称" width="180">
@@ -237,7 +237,7 @@ const handleSubmit = async () => {
           <el-table :data="tableData" style="width: 100%; flex: 1" class="custom-table" :header-cell-style="{ background: 'var(--el-fill-color-light)', color: 'var(--text-main)', fontWeight: '600', height: '48px' }">
             <el-table-column prop="id" label="ID" width="80">
               <template #default="{ row }">
-                <span class="font-mono text-[var(--text-muted)] text-sm">{{ row.id }}</span>
+                <span class="font-mono text-[var(--text-muted)] text-sm"><span class="text-[10px] opacity-60 mr-0.5">ID:</span>{{ row.id }}</span>
               </template>
             </el-table-column>
             <el-table-column prop="name" label="名称" width="180">
@@ -270,7 +270,7 @@ const handleSubmit = async () => {
           <el-table :data="tableData" style="width: 100%; flex: 1" class="custom-table" :header-cell-style="{ background: 'var(--el-fill-color-light)', color: 'var(--text-main)', fontWeight: '600', height: '48px' }">
             <el-table-column prop="id" label="ID" width="80">
               <template #default="{ row }">
-                <span class="font-mono text-[var(--text-muted)] text-sm">{{ row.id }}</span>
+                <span class="font-mono text-[var(--text-muted)] text-sm"><span class="text-[10px] opacity-60 mr-0.5">ID:</span>{{ row.id }}</span>
               </template>
             </el-table-column>
             <el-table-column prop="name" label="名称" width="180">

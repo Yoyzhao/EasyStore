@@ -1,10 +1,15 @@
+import os
+import uuid
+import aiofiles
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session
 from app.api import deps
 from app.models.user import User
 from app.schemas.user import User as UserSchema, UserCreate, UserUpdate, UserUpdatePassword
 from app.core.security import get_password_hash, verify_password
+from app.core.config import settings
+from app.core.system_settings import get_settings
 
 router = APIRouter()
 
@@ -62,6 +67,57 @@ def update_password_me(
         raise HTTPException(status_code=400, detail="Incorrect password")
     
     current_user.hashed_password = get_password_hash(body.new_password)
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+@router.put("/me/avatar", response_model=UserSchema)
+async def update_avatar_me(
+    *,
+    db: Session = Depends(deps.get_db),
+    file: UploadFile = File(...),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Update own avatar.
+    """
+    system_settings = get_settings()
+    upload_settings = system_settings.get("upload", {})
+    
+    file_extension = file.filename.split(".")[-1].lower()
+    allowed_extensions = [ext.lower() for ext in upload_settings.get("allowed_extensions", ["jpg", "jpeg", "png", "gif", "webp"])]
+    
+    if file_extension not in allowed_extensions:
+        raise HTTPException(status_code=400, detail=f"File extension not allowed. Allowed: {', '.join(allowed_extensions)}")
+    
+    # Read file content
+    content = await file.read()
+    
+    # Check file size
+    max_size_bytes = upload_settings.get("max_size_mb", 5) * 1024 * 1024
+    if len(content) > max_size_bytes:
+        raise HTTPException(status_code=400, detail=f"File too large. Maximum size is {upload_settings.get('max_size_mb')}MB")
+    
+    if not os.path.exists(settings.UPLOAD_DIR):
+        os.makedirs(settings.UPLOAD_DIR)
+
+    file_name = f"avatar_{current_user.id}_{uuid.uuid4().hex[:8]}.{file_extension}"
+    file_path = os.path.join(settings.UPLOAD_DIR, file_name)
+
+    # Delete old avatar if exists
+    if current_user.avatar:
+        old_avatar_path = os.path.join(settings.UPLOAD_DIR, current_user.avatar.split("/")[-1])
+        if os.path.exists(old_avatar_path):
+            try:
+                os.remove(old_avatar_path)
+            except:
+                pass
+
+    async with aiofiles.open(file_path, 'wb') as out_file:
+        await out_file.write(content)
+
+    current_user.avatar = f"/uploads/{file_name}"
     db.add(current_user)
     db.commit()
     db.refresh(current_user)

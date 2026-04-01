@@ -1,10 +1,29 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
+import { User, Key, Lock, Camera } from '@element-plus/icons-vue'
 import request from '@/api/request'
+import ImageCropper from '@/components/ImageCropper.vue'
 
 const userStore = useUserStore()
+
+// 裁剪相关
+const imageCropperRef = ref()
+
+// 基础 API 地址，用于拼接头像 URL
+const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+// 计算头像完整 URL
+const avatarUrl = computed(() => {
+  if (userStore.userInfo.avatar) {
+    if (userStore.userInfo.avatar.startsWith('http')) {
+      return userStore.userInfo.avatar
+    }
+    return `${apiBaseUrl}${userStore.userInfo.avatar}`
+  }
+  return ''
+})
 
 const passwordFormRef = ref()
 const passwordForm = reactive({
@@ -38,6 +57,30 @@ const rules = {
 }
 
 const submitting = ref(false)
+
+const beforeAvatarUpload = (file: any) => {
+  const isImage = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp' || file.type === 'image/gif'
+  const isLt2M = file.size / 1024 / 1024 < 2
+
+  if (!isImage) {
+    ElMessage.error('上传头像图片只能是 JPG/PNG/WEBP/GIF 格式!')
+    return false
+  }
+  if (!isLt2M) {
+    ElMessage.error('上传头像图片大小不能超过 2MB!')
+    return false
+  }
+
+  // 打开裁剪组件
+  imageCropperRef.value.open(file)
+  
+  return false // 返回 false 阻止 el-upload 自动上传
+}
+
+const handleCropSuccess = (res: any) => {
+  userStore.userInfo.avatar = res.avatar
+  ElMessage.success('头像更新成功')
+}
 
 const submitPassword = async () => {
   if (!passwordFormRef.value) return
@@ -77,12 +120,28 @@ const submitPassword = async () => {
         <div class="bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
           <div class="h-24 bg-gradient-to-r from-blue-500 to-indigo-500 w-full"></div>
           <div class="flex flex-col items-center px-6 pb-8 -mt-12 flex-1">
-            <div class="w-24 h-24 rounded-full bg-[var(--card-bg)] p-1.5 shadow-md mb-4 relative">
-              <div class="w-full h-full rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 text-3xl font-bold font-display">
-                {{ userStore.userInfo.username.charAt(0).toUpperCase() }}
+            <el-upload
+              class="avatar-uploader"
+              action="#"
+              :show-file-list="false"
+              :auto-upload="false"
+              :on-change="(file: any) => beforeAvatarUpload(file.raw)"
+              accept="image/*"
+            >
+              <div class="w-24 h-24 rounded-full bg-[var(--card-bg)] p-1.5 shadow-md mb-4 relative group cursor-pointer overflow-hidden">
+                <div v-if="userStore.userInfo.avatar" class="w-full h-full rounded-full overflow-hidden">
+                  <img :src="avatarUrl" class="w-full h-full object-cover" />
+                </div>
+                <div v-else class="w-full h-full rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 text-3xl font-bold font-display">
+                  {{ userStore.userInfo.username.charAt(0).toUpperCase() }}
+                </div>
+                <!-- Hover Overlay -->
+                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full">
+                  <el-icon class="text-white text-2xl"><Camera /></el-icon>
+                </div>
+                <div class="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-[var(--card-bg)] rounded-full z-10"></div>
               </div>
-              <div class="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-[var(--card-bg)] rounded-full"></div>
-            </div>
+            </el-upload>
             <h3 class="text-xl font-bold mb-2 text-[var(--text-main)]">{{ userStore.userInfo.username }}</h3>
             <div :class="userStore.userInfo.role === 'admin' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'" class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border border-transparent shadow-sm">
               {{ userStore.userInfo.role === 'admin' ? '超级管理员' : '普通用户' }}
@@ -168,6 +227,15 @@ const submitPassword = async () => {
         </div>
       </div>
     </div>
+
+    <!-- 头像裁剪组件 -->
+    <ImageCropper
+      ref="imageCropperRef"
+      upload-url="/users/me/avatar"
+      method="PUT"
+      title="裁剪头像"
+      @success="handleCropSuccess"
+    />
   </div>
 </template>
 

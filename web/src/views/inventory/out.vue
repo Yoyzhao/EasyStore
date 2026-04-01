@@ -122,7 +122,7 @@ const handleCancel = () => {
               <el-option 
                 v-for="item in items" 
                 :key="item.id" 
-                :label="`${item.name} (库存: ${item.stock})`" 
+                :label="`${item.name} (ID: ${item.id}, 库存: ${item.stock})`" 
                 :value="item.id" 
               />
             </el-select>

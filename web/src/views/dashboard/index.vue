@@ -25,6 +25,7 @@ const recentRecords = computed(() => {
     id: r.id,
     type: r.type === 'in' ? '入库' : '出库',
     item: r.item_name,
+    itemId: r.item_id,
     qty: r.quantity,
     operator: r.operator,
     time: new Date(r.time).toLocaleString()
@@ -177,8 +178,9 @@ onUnmounted(() => {
               <el-icon :size="18"><component :is="record.type === '入库' ? 'Bottom' : 'Top'" /></el-icon>
             </div>
             <div class="flex-1 min-w-0">
-              <div class="text-sm font-bold truncate text-[var(--text-main)] group-hover:text-blue-500 transition-colors">
-                {{ record.item }}
+              <div class="text-sm font-bold truncate text-[var(--text-main)] group-hover:text-blue-500 transition-colors flex items-center gap-1.5">
+                <span>{{ record.item }}</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-[var(--text-muted)] font-normal border border-[var(--border-subtle)]">ID: {{ record.itemId }}</span>
               </div>
               <div class="text-xs mt-1 text-[var(--text-muted)] flex items-center gap-1">
                 <el-icon><User /></el-icon>{{ record.operator }} <span class="mx-1">·</span> {{ record.time }}

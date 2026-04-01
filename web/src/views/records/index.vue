@@ -177,7 +177,7 @@ const handleExport = () => {
         </el-table-column>
         <el-table-column prop="item_id" label="物品ID" width="100">
           <template #default="{ row }">
-            <span class="font-mono text-[var(--text-muted)] text-sm">{{ row.item_id }}</span>
+            <span class="font-mono text-[var(--text-muted)] text-sm"><span class="text-[10px] opacity-60 mr-0.5">ID:</span>{{ row.item_id }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="name" label="物品名称" min-width="150">

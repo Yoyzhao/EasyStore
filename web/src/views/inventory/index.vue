@@ -11,8 +11,8 @@ import { storeToRefs } from 'pinia'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import * as XLSX from 'xlsx'
-
 import { uploadFile } from '@/api/request'
+import ImageCropper from '@/components/ImageCropper.vue'
 
 const router = useRouter()
 const inventoryStore = useInventoryStore()
@@ -23,6 +23,9 @@ const appStore = useAppStore()
 
 const { categories, brands } = storeToRefs(metadataStore)
 const { totalItems } = storeToRefs(inventoryStore)
+
+// 裁剪相关
+const imageCropperRef = ref()
 
 const searchForm = reactive({
   keyword: '',
@@ -212,13 +215,14 @@ const handleImageChange = async (file: any) => {
       return false
     }
     
-    try {
-      const url = await uploadFile(file.raw)
-      editForm.image_url = url
-    } catch (e) {
-      ElMessage.error('图片上传失败')
-    }
+    // 打开裁剪组件
+    imageCropperRef.value.open(file.raw)
   }
+}
+
+const handleCropSuccess = (res: any) => {
+  editForm.image_url = res.url
+  ElMessage.success('图片裁剪并上传成功')
 }
 
 const handleView = (row: any) => {
@@ -296,7 +300,11 @@ const handleDelete = (row: any) => {
         class="custom-table"
         :header-cell-style="{ background: 'var(--el-fill-color-light)', color: 'var(--text-main)', fontWeight: '600', height: '48px' }"
       >
-        <el-table-column prop="id" label="ID" width="80" align="center" />
+        <el-table-column prop="id" label="ID" width="80" align="center">
+          <template #default="{ row }">
+            <span class="font-mono text-[var(--text-muted)] text-sm"><span class="text-[10px] opacity-60 mr-0.5">ID:</span>{{ row.id }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="name" label="物品名称" min-width="180" show-overflow-tooltip>
           <template #default="{ row }">
             <div class="font-bold text-[var(--text-main)]">{{ row.name }}</div>
@@ -403,7 +411,7 @@ const handleDelete = (row: any) => {
           </div>
           <el-descriptions :column="1" border size="default" class="custom-descriptions">
             <el-descriptions-item label="物品ID">
-              <span class="font-mono text-gray-500">{{ currentItem.id }}</span>
+              <span class="font-mono text-gray-500"><span class="text-[10px] opacity-60 mr-0.5">ID:</span>{{ currentItem.id }}</span>
             </el-descriptions-item>
             <el-descriptions-item label="物品名称">
               <span class="font-bold text-[var(--text-main)]">{{ currentItem.name }}</span>
@@ -551,5 +559,15 @@ const handleDelete = (row: any) => {
         </span>
       </template>
     </el-dialog>
+
+    <!-- 图片裁剪组件 -->
+    <ImageCropper
+      ref="imageCropperRef"
+      upload-url="/upload/"
+      method="POST"
+      title="裁剪物品图片"
+      :aspect-ratio="[1, 1]"
+      @success="handleCropSuccess"
+    />
   </div>
 </template>

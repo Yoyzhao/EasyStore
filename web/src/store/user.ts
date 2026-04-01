@@ -6,7 +6,8 @@ export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
   const userInfo = ref({
     username: '',
-    role: '' // 'admin' or 'user'
+    role: '', // 'admin' or 'user'
+    avatar: ''
   })
 
   const login = async (form: any) => {
@@ -25,13 +26,14 @@ export const useUserStore = defineStore('user', () => {
     const res: any = await request.get('/auth/me')
     userInfo.value = {
       username: res.username,
-      role: res.role
+      role: res.role,
+      avatar: res.avatar || ''
     }
   }
 
   const logout = () => {
     token.value = ''
-    userInfo.value = { username: '', role: '' }
+    userInfo.value = { username: '', role: '', avatar: '' }
     localStorage.removeItem('token')
     window.location.reload()
   }

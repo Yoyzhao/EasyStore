@@ -9,12 +9,16 @@ import { useMetadataStore } from '@/store/metadata'
 import { useSystemStore } from '@/store/system'
 import { storeToRefs } from 'pinia'
 import { uploadFile } from '@/api/request'
+import ImageCropper from '@/components/ImageCropper.vue'
 
 const router = useRouter()
 const inventoryStore = useInventoryStore()
 const userStore = useUserStore()
 const metadataStore = useMetadataStore()
 const systemStore = useSystemStore()
+
+// 裁剪相关
+const imageCropperRef = ref()
 
 onMounted(() => {
   inventoryStore.fetchItems()
@@ -89,13 +93,14 @@ const handleImageChange = async (file: any) => {
       return false
     }
     
-    try {
-      const url = await uploadFile(file.raw)
-      form.image = url
-    } catch (e) {
-      ElMessage.error('图片上传失败')
-    }
+    // 打开裁剪组件
+    imageCropperRef.value.open(file.raw)
   }
+}
+
+const handleCropSuccess = (res: any) => {
+  form.image = res.url
+  ElMessage.success('图片裁剪并上传成功')
 }
 
 const handleItemSelect = (id: number) => {
@@ -181,7 +186,7 @@ const handleCancel = () => {
 
           <el-form-item v-if="inboundMode === 'existing'" label="选择物品" prop="itemId" class="font-medium">
             <el-select v-model="form.itemId" filterable placeholder="搜索物品名称或ID" class="w-full !rounded-xl" @change="handleItemSelect">
-              <el-option v-for="item in inventoryStore.items" :key="item.id" :label="`${item.name} (${item.id})`" :value="item.id" />
+              <el-option v-for="item in inventoryStore.items" :key="item.id" :label="`${item.name} (ID: ${item.id})`" :value="item.id" />
             </el-select>
           </el-form-item>
 
@@ -284,5 +289,15 @@ const handleCancel = () => {
           </el-form-item>
         </el-form>
     </div>
+
+    <!-- 图片裁剪组件 -->
+    <ImageCropper
+      ref="imageCropperRef"
+      upload-url="/upload/"
+      method="POST"
+      title="裁剪物品图片"
+      :aspect-ratio="[1, 1]"
+      @success="handleCropSuccess"
+    />
   </div>
 </template>
