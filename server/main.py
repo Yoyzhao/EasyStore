@@ -10,7 +10,7 @@ from app.db.init_db import init_db
 from app.db.session import SessionLocal
 
 app = FastAPI(
-    title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    title=settings.APP_PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
 # Set all CORS enabled origins
@@ -51,4 +51,4 @@ if os.path.exists(frontend_dir):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=settings.APP_PORT, reload=True)

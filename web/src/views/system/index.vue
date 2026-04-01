@@ -16,6 +16,13 @@ const settingsForm = ref({
   },
   access: {
     allow_external_ip: false
+  },
+  storage: {
+    data_path: 'data'
+  },
+  general: {
+    project_name: 'EasyStore',
+    port: 8000
   }
 })
 
@@ -159,6 +166,35 @@ onMounted(() => {
               >
                 <div class="flex items-center gap-2 mb-6 mt-2">
                   <div class="w-1 h-5 bg-blue-500 rounded-full"></div>
+                  <div class="font-bold text-lg text-[var(--text-main)]">系统信息设置</div>
+                </div>
+
+                <el-form-item label="系统名称" prop="general.project_name" class="font-medium">
+                  <el-input
+                    v-model="settingsForm.general.project_name"
+                    placeholder="请输入系统名称"
+                    class="!w-full max-w-md !rounded-xl"
+                  />
+                  <div class="w-full text-xs mt-2 text-[var(--text-muted)] font-normal">
+                    设置系统的显示名称，将展示在页面标题和页脚。
+                  </div>
+                </el-form-item>
+
+                <el-form-item label="运行端口" prop="general.port" class="font-medium">
+                  <el-input-number
+                    v-model="settingsForm.general.port"
+                    :min="1"
+                    :max="65535"
+                    controls-position="right"
+                    class="!w-48 !rounded-xl"
+                  />
+                  <div class="w-full text-xs mt-2 text-[var(--text-muted)] font-normal">
+                    系统后端服务的运行端口。修改后需要重启服务生效。
+                  </div>
+                </el-form-item>
+
+                <div class="flex items-center gap-2 mb-6 mt-10">
+                  <div class="w-1 h-5 bg-blue-500 rounded-full"></div>
                   <div class="font-bold text-lg text-[var(--text-main)]">上传限制设置</div>
                 </div>
                 
@@ -210,6 +246,22 @@ onMounted(() => {
                   />
                   <div class="w-full text-xs mt-2 text-[var(--text-muted)] font-normal">
                     开启后，允许其他IP地址的设备访问本系统；关闭后，仅允许本机 (127.0.0.1 / localhost) 访问。
+                  </div>
+                </el-form-item>
+
+                <div class="flex items-center gap-2 mb-6 mt-10">
+                  <div class="w-1 h-5 bg-blue-500 rounded-full"></div>
+                  <div class="font-bold text-lg text-[var(--text-main)]">存储位置设置</div>
+                </div>
+
+                <el-form-item label="数据保存路径" prop="storage.data_path" class="font-medium">
+                  <el-input
+                    v-model="settingsForm.storage.data_path"
+                    placeholder="请输入保存路径，支持相对路径(如 data)或绝对路径(如 D:\EasyStoreData)"
+                    class="!w-full max-w-md !rounded-xl"
+                  />
+                  <div class="w-full text-xs mt-2 text-[var(--text-muted)] font-normal">
+                    控制数据库文件和上传文件的保存根路径。支持绝对路径。修改后需手动将原数据文件夹(默认 data/) 移动到新位置并重启系统。
                   </div>
                 </el-form-item>
 

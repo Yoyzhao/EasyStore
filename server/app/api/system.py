@@ -50,7 +50,7 @@ def backup_system_data(
     """
     Backup system data (database and uploads) into a zip file.
     """
-    data_dir = os.path.join(settings.BASE_DIR, "data")
+    data_dir = settings.DATA_PATH
     if not os.path.exists(data_dir):
         raise HTTPException(status_code=404, detail="Data directory not found")
 
@@ -67,7 +67,7 @@ def backup_system_data(
                     file_path = os.path.join(root, file)
                     # The archive path should be relative to the data_dir's parent
                     # so when extracted, it creates/overwrites the data directory.
-                    arcname = os.path.relpath(file_path, settings.BASE_DIR)
+                    arcname = os.path.relpath(file_path, os.path.dirname(settings.DATA_PATH))
                     zipf.write(file_path, arcname)
     except Exception as e:
         if os.path.exists(backup_filepath):
@@ -111,15 +111,16 @@ async def restore_system_data(
         # Extract to base dir (since we archived it with 'data/...' path)
         with zipfile.ZipFile(upload_filepath, 'r') as zipf:
             # Basic security check: ensure all files extract to data/
+            data_dirname = os.path.basename(settings.DATA_PATH)
             for member in zipf.namelist():
-                if not member.startswith('data/') and not member.startswith('data\\'):
+                if not member.startswith(f'{data_dirname}/') and not member.startswith(f'{data_dirname}\\'):
                     raise HTTPException(status_code=400, detail="Invalid backup file structure")
                 if '..' in member:
                     raise HTTPException(status_code=400, detail="Invalid path in backup file")
             
             # Close DB connection if needed? We use SQLite, it might be locked if a transaction is ongoing,
             # but for simple restore, we will just extract and overwrite.
-            zipf.extractall(settings.BASE_DIR)
+            zipf.extractall(os.path.dirname(settings.DATA_PATH))
             
     except HTTPException:
         raise

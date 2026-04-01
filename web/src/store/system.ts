@@ -9,6 +9,13 @@ interface SystemSettings {
   access: {
     allow_external_ip: boolean
   }
+  storage: {
+    data_path: string
+  }
+  general: {
+    project_name: string
+    port: number
+  }
 }
 
 export const useSystemStore = defineStore('system', {
@@ -20,6 +27,13 @@ export const useSystemStore = defineStore('system', {
       },
       access: {
         allow_external_ip: false
+      },
+      storage: {
+        data_path: 'data'
+      },
+      general: {
+        project_name: 'EasyStore',
+        port: 8000
       }
     } as SystemSettings,
     isLoaded: false

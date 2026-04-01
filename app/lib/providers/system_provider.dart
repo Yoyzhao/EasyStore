@@ -10,6 +10,11 @@ class SystemProvider extends ChangeNotifier {
       'allowed_extensions': ['jpg', 'jpeg', 'png', 'gif', 'webp'],
     },
     'access': {'allow_external_ip': false},
+    'storage': {'data_path': 'data'},
+    'general': {
+      'project_name': 'EasyStore',
+      'port': 8000,
+    },
   };
 
   bool isLoading = false;

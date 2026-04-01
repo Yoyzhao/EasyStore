@@ -12,6 +12,13 @@ DEFAULT_SETTINGS = {
     },
     "access": {
         "allow_external_ip": False
+    },
+    "storage": {
+        "data_path": "data"
+    },
+    "general": {
+        "project_name": "EasyStore",
+        "port": 8000
     }
 }
 
@@ -31,6 +38,10 @@ def get_settings() -> Dict[str, Any]:
                 merged["upload"].update(data["upload"])
             if "access" in data:
                 merged["access"].update(data["access"])
+            if "storage" in data:
+                merged["storage"].update(data["storage"])
+            if "general" in data:
+                merged["general"].update(data["general"])
             return merged
     except Exception:
         return DEFAULT_SETTINGS
@@ -41,6 +52,10 @@ def update_settings(new_settings: Dict[str, Any]) -> Dict[str, Any]:
         current_settings["upload"].update(new_settings["upload"])
     if "access" in new_settings:
         current_settings["access"].update(new_settings["access"])
+    if "storage" in new_settings:
+        current_settings["storage"].update(new_settings["storage"])
+    if "general" in new_settings:
+        current_settings["general"].update(new_settings["general"])
         
     os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
     with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
