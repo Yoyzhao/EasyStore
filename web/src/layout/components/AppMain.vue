@@ -5,7 +5,7 @@ const route = useRoute()
 </script>
 
 <template>
-  <section class="p-4 sm:p-6 h-full transition-colors duration-300" style="background-color: var(--el-bg-color-page); color: var(--el-text-color-primary);">
+  <section class="h-full transition-colors duration-300" style="background-color: var(--el-bg-color-page); color: var(--el-text-color-primary);">
     <router-view v-slot="{ Component }">
       <component :is="Component" :key="route.fullPath" />
     </router-view>

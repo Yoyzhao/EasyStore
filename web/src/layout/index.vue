@@ -55,16 +55,17 @@ watch(() => route.path, () => {
     <!-- 右侧内容区 -->
     <div 
       class="flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300"
+      style="scrollbar-gutter: stable;"
     >
       <!-- 顶部导航栏 -->
-      <div class="px-0 md:px-4 pt-0 md:pt-4">
-        <div class="rounded-none md:rounded-2xl border-b md:border border-[var(--border-subtle)] bg-[var(--sidebar-bg)] shadow-sm md:shadow-sm overflow-hidden">
+      <div class="px-0 md:px-6 pt-0 md:pt-4 flex-shrink-0">
+        <div class="max-w-7xl mx-auto w-full rounded-none md:rounded-2xl border-b md:border border-[var(--border-subtle)] bg-[var(--sidebar-bg)] shadow-sm md:shadow-sm overflow-hidden">
           <Navbar />
         </div>
       </div>
       
       <!-- 主要内容区域 -->
-      <div class="flex-1 overflow-auto transition-colors duration-300 p-4 md:p-6">
+      <div class="flex-1 overflow-y-auto px-0 md:px-6 py-4 md:py-6">
         <AppMain />
       </div>
     </div>

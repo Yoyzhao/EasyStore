@@ -40,7 +40,7 @@ const resolvePath = (basePath: string, childPath?: string) => {
 <template>
   <div class="h-full transition-all duration-300 flex flex-col overflow-hidden bg-transparent">
     <!-- 顶部 Logo 区域 -->
-    <div class="h-20 flex items-center shrink-0 gap-3 px-6 border-b border-[var(--border-subtle)]">
+    <div :class="[appStore.sidebarCollapsed ? 'px-2 justify-center' : 'px-6', 'h-20 flex items-center shrink-0 gap-3 border-b border-[var(--border-subtle)] transition-all duration-300']">
       <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
         <el-icon :size="24" class="text-blue-500"><Box /></el-icon>
       </div>
@@ -97,9 +97,9 @@ const resolvePath = (basePath: string, childPath?: string) => {
     </div>
 
     <!-- 用户操作区域 -->
-    <div class="p-4 mt-auto shrink-0 border-t border-[var(--border-subtle)]">
+    <div :class="[appStore.sidebarCollapsed ? 'p-2' : 'p-4', 'mt-auto shrink-0 border-t border-[var(--border-subtle)] transition-all duration-300']">
       <el-dropdown trigger="click" placement="top" class="w-full">
-        <div class="flex items-center justify-between w-full cursor-pointer p-2 rounded-xl transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800/50">
+        <div :class="[appStore.sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-2', 'flex items-center w-full cursor-pointer py-2 rounded-xl transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800/50']">
           <div class="flex items-center overflow-hidden">
             <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-400 to-indigo-500 p-[2px] flex-shrink-0 shadow-sm">
               <img src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" class="w-full h-full rounded-full border-2 border-white dark:border-gray-800 object-cover" />
