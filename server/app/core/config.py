@@ -9,10 +9,19 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
     
     # Base directory
-    BASE_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+    @property
+    def BASE_DIR(self) -> str:
+        import sys
+        if getattr(sys, 'frozen', False):
+            # If the application is run as a bundle, the PyInstaller bootloader
+            # extends the sys module by a flag frozen=True and sets the app 
+            # path into variable _MEIPASS.
+            # But we want the directory where the .exe is located for persistence
+            return os.path.dirname(sys.executable)
+        return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
     
     # Load dynamic settings from data/settings.json if exists
-    def _get_dynamic_setting(self, section, key, default):
+    def _get_dynamic_setting(self, section: str, key: str, default: any):
         settings_path = os.path.join(self.BASE_DIR, "data", "settings.json")
         if os.path.exists(settings_path):
             try:

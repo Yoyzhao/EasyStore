@@ -8,7 +8,6 @@ import { useUserStore } from '@/store/user'
 import { useMetadataStore } from '@/store/metadata'
 import { useSystemStore } from '@/store/system'
 import { storeToRefs } from 'pinia'
-import { uploadFile } from '@/api/request'
 import ImageCropper from '@/components/ImageCropper.vue'
 
 const router = useRouter()

@@ -11,7 +11,6 @@ import { storeToRefs } from 'pinia'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import * as XLSX from 'xlsx'
-import { uploadFile } from '@/api/request'
 import ImageCropper from '@/components/ImageCropper.vue'
 
 const router = useRouter()

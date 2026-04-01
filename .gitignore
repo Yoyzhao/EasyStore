@@ -18,6 +18,17 @@ dist/
 .DS_Store
 Thumbs.db
 
+# Electron
+electron/node_modules/
+electron/dist/
+electron/release/
+electron/web/
+
+# Server Build
+server/dist/
+server/build/
+server/*.spec
+
 # Project
 build/
 data/db/*.sqlite3
