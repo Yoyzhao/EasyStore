@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
-from sqlalchemy.sql import func
 from app.db.base_class import Base
+from app.core.datetime_utils import get_now
 
 class User(Base):
     __tablename__ = "users"
@@ -11,4 +11,4 @@ class User(Base):
     role = Column(String, default="user") # 'admin' or 'user'
     is_active = Column(Boolean, default=True)
     avatar = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), default=get_now)

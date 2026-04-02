@@ -4,6 +4,7 @@ import * as echarts from 'echarts'
 import { useDark } from '@vueuse/core'
 import { useDashboardStore } from '@/store/dashboard'
 import { useInventoryStore } from '@/store/inventory'
+import { formatToUTC8 } from '@/utils/date'
 
 const isDark = useDark()
 const chartRef = ref<HTMLElement | null>(null)
@@ -28,7 +29,7 @@ const recentRecords = computed(() => {
     itemId: r.item_id,
     qty: r.quantity,
     operator: r.operator,
-    time: new Date(r.time).toLocaleString()
+    time: formatToUTC8(r.time)
   }))
 })
 
@@ -183,7 +184,7 @@ onUnmounted(() => {
                 <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-[var(--text-muted)] font-normal border border-[var(--border-subtle)]">ID: {{ record.itemId }}</span>
               </div>
               <div class="text-xs mt-1 text-[var(--text-muted)] flex items-center gap-1">
-                <el-icon><User /></el-icon>{{ record.operator }} <span class="mx-1">·</span> {{ record.time }}
+                <el-icon><User /></el-icon>{{ record.operator }} <span class="mx-1">·</span> <span class="font-mono">{{ record.time }}</span>
               </div>
             </div>
             <div class="text-base font-bold ml-3 whitespace-nowrap" :class="record.type === '入库' ? 'text-green-500' : 'text-orange-500'">

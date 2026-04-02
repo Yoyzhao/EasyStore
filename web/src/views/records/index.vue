@@ -4,6 +4,7 @@ import { Search, Download } from '@element-plus/icons-vue'
 import { useInventoryStore } from '@/store/inventory'
 import { storeToRefs } from 'pinia'
 import * as XLSX from 'xlsx'
+import { formatToUTC8 } from '@/utils/date'
 
 const inventoryStore = useInventoryStore()
 const { totalRecords } = storeToRefs(inventoryStore)
@@ -43,7 +44,7 @@ const fetchData = () => {
 const tableData = computed(() => {
   return inventoryStore.records.map(record => ({
     ...record,
-    createdAt: new Date(record.time.endsWith('Z') || record.time.includes('+') ? record.time : record.time + 'Z').toLocaleString('zh-CN', { hour12: false }),
+    createdAt: formatToUTC8(record.time),
     name: record.item_name,
     remark: record.remark ? record.remark.replace('Usage/Destination:', '用途/去向:') : '-'
   }))
@@ -104,7 +105,7 @@ const handleExport = () => {
   ]
   worksheet['!cols'] = wscols
 
-  const fileName = `流转明细_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`
+  const fileName = `流转明细_${formatToUTC8(new Date()).replace(/[\/ :]/g, '-')}.xlsx`
   XLSX.writeFile(workbook, fileName)
 }
 </script>
@@ -163,9 +164,9 @@ const handleExport = () => {
     <!-- 表格区域 -->
     <div class="flex-1 flex flex-col bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-subtle)] p-6 overflow-hidden">
       <el-table :data="tableData" style="width: 100%; flex: 1;" height="100%" class="custom-table" :header-cell-style="{ background: 'var(--el-fill-color-light)', color: 'var(--text-main)', fontWeight: '600', height: '48px' }">
-        <el-table-column prop="createdAt" label="操作时间" width="180">
+        <el-table-column prop="createdAt" label="操作时间" width="200">
           <template #default="{ row }">
-            <span class="text-[var(--text-muted)]">{{ row.createdAt }}</span>
+            <span class="text-[var(--text-muted)] font-mono text-xs">{{ row.createdAt }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="type" label="类型" width="100">

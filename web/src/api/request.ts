@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 
 const isElectron = window.navigator.userAgent.toLowerCase().includes('electron')
 const request = axios.create({
-  baseURL: isElectron ? 'http://localhost:8000/api/v1' : '/api/v1',
+  baseURL: isElectron ? 'http://127.0.0.1:8000/api/v1' : '/api/v1',
   timeout: 10000
 })
 

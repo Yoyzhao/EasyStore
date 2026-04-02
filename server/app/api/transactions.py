@@ -2,12 +2,13 @@ from typing import Any, List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, cast, String
+from sqlalchemy import or_
 from app.api import deps
 from app.models.item import Item
 from app.models.transaction import Transaction
 from app.schemas.transaction import Transaction as TransactionSchema, InboundRequest, OutboundRequest, TransactionPagination
 from app.models.user import User
+from app.core.datetime_utils import get_now, TZ_UTC_8
 
 router = APIRouter()
 
@@ -89,7 +90,8 @@ def inbound_item(
         price=inbound_in.price,
         total_value=inbound_in.quantity * inbound_in.price,
         operator=inbound_in.operator or current_user.username,
-        remark=inbound_in.remark
+        remark=inbound_in.remark,
+        time=get_now()
     )
     db.add(transaction)
     db.commit()
@@ -136,7 +138,8 @@ def outbound_item(
         total_value=outbound_in.quantity * item.price,
         operator=outbound_in.operator or current_user.username,
         recipient=outbound_in.recipient,
-        remark=remark_str
+        remark=remark_str,
+        time=get_now()
     )
     db.add(transaction)
     db.commit()

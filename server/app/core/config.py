@@ -34,6 +34,10 @@ class Settings(BaseSettings):
 
     @property
     def DATA_PATH(self) -> str:
+        env_data_path = os.environ.get("EASYSTORE_DATA_PATH")
+        if env_data_path:
+            return env_data_path
+            
         path = self._get_dynamic_setting("storage", "data_path", "data")
         if os.path.isabs(path):
             return path

@@ -2,7 +2,7 @@ import os
 import shutil
 import zipfile
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
 from fastapi.responses import FileResponse
 from app.api import deps
@@ -10,11 +10,9 @@ from app.models.user import User
 from app.core.config import settings
 from app.schemas.system import SystemSettings
 from app.core.system_settings import get_settings, update_settings
+from app.core.datetime_utils import get_now, TZ_UTC_8
 
 router = APIRouter()
-
-# Define UTC+8 timezone
-TZ_UTC_8 = timezone(timedelta(hours=8))
 
 @router.get("/settings", response_model=SystemSettings)
 def read_system_settings(
@@ -54,7 +52,7 @@ def backup_system_data(
     if not os.path.exists(data_dir):
         raise HTTPException(status_code=404, detail="Data directory not found")
 
-    timestamp = datetime.now(TZ_UTC_8).strftime("%Y%m%d_%H%M%S")
+    timestamp = get_now().strftime("%Y%m%d_%H%M%S")
     backup_filename = f"easystore_backup_{timestamp}.zip"
     temp_dir = tempfile.gettempdir()
     backup_filepath = os.path.join(temp_dir, backup_filename)
@@ -96,7 +94,7 @@ async def restore_system_data(
         raise HTTPException(status_code=400, detail="Only zip files are allowed for restore")
 
     temp_dir = tempfile.gettempdir()
-    upload_filepath = os.path.join(temp_dir, f"restore_{datetime.now(TZ_UTC_8).strftime('%Y%m%d_%H%M%S')}.zip")
+    upload_filepath = os.path.join(temp_dir, f"restore_{get_now().strftime('%Y%m%d_%H%M%S')}.zip")
     
     try:
         # Save uploaded file

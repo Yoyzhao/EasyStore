@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/api/request'
 import { useAppStore } from '@/store/app'
+import { formatToUTC8 } from '@/utils/date'
 
 const activeTab = ref('general')
 const appStore = useAppStore()
@@ -76,7 +77,7 @@ const handleBackup = async () => {
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    const dateStr = formatToUTC8(new Date()).replace(/[\/ :]/g, '-')
     link.setAttribute('download', `easystore_backup_${dateStr}.zip`)
     document.body.appendChild(link)
     link.click()

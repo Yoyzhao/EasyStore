@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive, computed, ref, onMounted } from 'vue'
 import { Search, Plus, Edit, Delete, View, Download, Minus } from '@element-plus/icons-vue'
+import { formatToUTC8 } from '@/utils/date'
 import { useRouter } from 'vue-router'
 import { useInventoryStore } from '@/store/inventory'
 import { useMetadataStore } from '@/store/metadata'
@@ -460,22 +461,27 @@ const handleDelete = (row: any) => {
                 v-for="record in itemRecords.slice(0, 5)"
                 :key="record.id"
                 :type="record.type === 'in' ? 'success' : 'warning'"
-                :timestamp="new Date(record.time).toLocaleString()"
                 placement="top"
               >
-                <div class="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded-xl border border-[var(--border-subtle)] shadow-sm">
-                  <div class="flex items-center gap-2">
-                    <div :class="record.type === 'in' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'" class="p-1.5 rounded-lg">
-                      <el-icon size="14"><Plus v-if="record.type === 'in'" /><Minus v-else /></el-icon>
+                <template #default>
+                  <div class="flex flex-col gap-1.5">
+                    <span class="text-[11px] text-[var(--text-muted)] font-mono opacity-80 leading-none">{{ formatToUTC8(record.time) }}</span>
+                    <div class="flex items-center justify-between bg-[var(--card-bg)] p-3 rounded-xl border border-[var(--border-subtle)] shadow-sm group/item hover:border-blue-500/30 transition-all duration-300">
+                      <div class="flex items-center gap-2.5">
+                        <div :class="record.type === 'in' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'" class="p-1.5 rounded-lg transition-colors duration-300">
+                          <el-icon size="14"><Plus v-if="record.type === 'in'" /><Minus v-else /></el-icon>
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="font-bold text-sm text-[var(--text-main)]">{{ record.type === 'in' ? '入库' : '出库' }}</span>
+                          <span class="text-[10px] text-[var(--text-muted)] truncate max-w-[100px]">{{ record.operator }}</span>
+                        </div>
+                      </div>
+                      <span :class="record.type === 'in' ? 'text-green-500' : 'text-orange-500'" class="font-bold font-mono text-base">
+                        {{ record.type === 'in' ? '+' : '-' }}{{ record.quantity }}
+                      </span>
                     </div>
-                    <span class="font-bold text-sm text-[var(--text-main)]">
-                      {{ record.type === 'in' ? '入库' : '出库' }}
-                    </span>
                   </div>
-                  <span :class="record.type === 'in' ? 'text-green-500' : 'text-orange-500'" class="font-bold font-mono">
-                    {{ record.type === 'in' ? '+' : '-' }}{{ record.quantity }}
-                  </span>
-                </div>
+                </template>
               </el-timeline-item>
               <el-timeline-item v-if="itemRecords.length === 0" hide-timestamp>
                 <div class="text-gray-400 text-center py-4 italic">暂无流转记录</div>

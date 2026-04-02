@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime
-from sqlalchemy.sql import func
 from app.db.base_class import Base
+from app.core.datetime_utils import get_now
 
 class Item(Base):
     __tablename__ = "items"
@@ -16,5 +16,5 @@ class Item(Base):
     image_url = Column(String, nullable=True)
     item_link = Column(String, nullable=True)
     remark = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), default=get_now)
+    updated_at = Column(DateTime(timezone=True), default=get_now, onupdate=get_now)

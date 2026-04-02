@@ -1,4 +1,5 @@
 from typing import Any, Dict
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -6,12 +7,9 @@ from app.api import deps
 from app.models.item import Item
 from app.models.transaction import Transaction
 from app.models.user import User
-from datetime import datetime, timedelta, timezone
+from app.core.datetime_utils import get_now, TZ_UTC_8
 
 router = APIRouter()
-
-# Define UTC+8 timezone
-TZ_UTC_8 = timezone(timedelta(hours=8))
 
 @router.get("/stats", response_model=Dict[str, Any])
 def get_dashboard_stats(
@@ -28,7 +26,7 @@ def get_dashboard_stats(
     low_stock_items = db.query(func.count(Item.id)).filter(Item.quantity < Item.low_stock_threshold).scalar() or 0
 
     # Recent Transactions (Last 7 days)
-    now = datetime.now(TZ_UTC_8)
+    now = get_now()
     seven_days_ago = now - timedelta(days=7)
     recent_inbound = db.query(func.count(Transaction.id)).filter(
         Transaction.type == 'in',
@@ -54,7 +52,7 @@ def get_dashboard_trend(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     # Get last 7 days trend data
-    now = datetime.now(TZ_UTC_8)
+    now = get_now()
     today = now.date()
     dates = [(today - timedelta(days=i)).strftime('%m-%d') for i in range(6, -1, -1)]
     
