@@ -264,6 +264,8 @@ async function waitForServerReady(timeoutMs = 45000) {
   throw new Error('后端服务启动超时')
 }
 
+let isRestarting = false
+
 function startBackend() {
   if (backendProcess) {
     return
@@ -305,7 +307,7 @@ function startBackend() {
     backendProcess = null
     isBackendReady = false
 
-    if (!isQuitting) {
+    if (!isQuitting && !isRestarting) {
       dialog.showErrorBox('EasyStore', `后端服务已退出，退出码：${code ?? 'unknown'}`)
       app.quit()
     }
@@ -330,6 +332,15 @@ function registerIpcHandlers() {
   })
   ipcMain.handle('backend:get-port', () => {
     return PORT
+  })
+  ipcMain.handle('backend:restart', async () => {
+    isRestarting = true
+    stopBackend()
+    // 重新启动后端
+    startBackend()
+    await waitForServerReady()
+    isRestarting = false
+    return true
   })
 }
 

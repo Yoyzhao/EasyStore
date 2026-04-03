@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
   checkBackendStatus: () => ipcRenderer.invoke('backend:check-status'),
   getBackendPort: () => ipcRenderer.invoke('backend:get-port'),
+  restartBackend: () => ipcRenderer.invoke('backend:restart'),
   onBackendReady: (callback) => ipcRenderer.on('backend:ready', () => callback()),
   onBackendLog: (callback) => ipcRenderer.on('backend:log', (_event, log) => callback(log))
 })

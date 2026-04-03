@@ -81,12 +81,36 @@ const performSave = async () => {
     ElMessage.success('设置保存成功')
     
     // 如果修改了端口或路径，提醒重启
-    if (settingsForm.value.general.port !== originalPort.value || 
-        settingsForm.value.storage.data_path !== originalDataPath.value) {
-      ElMessageBox.alert('配置已更改，请手动重启后端服务以使新路径或端口生效。', '保存成功', {
-        confirmButtonText: '我知道了',
-        type: 'success'
-      })
+    const needsRestart = settingsForm.value.general.port !== originalPort.value || 
+                        settingsForm.value.storage.data_path !== originalDataPath.value
+    
+    if (needsRestart) {
+      // 检查是否在 Electron 环境下
+      const isElectron = !!(window as any).electronAPI
+      
+      if (isElectron) {
+        try {
+          await ElMessageBox.confirm('配置已更改，为了使新路径生效，系统需要重启后端服务。是否现在自动重启？', '配置变更', {
+            confirmButtonText: '立即重启',
+            cancelButtonText: '稍后手动重启',
+            type: 'warning'
+          })
+          
+          savingSettings.value = true
+          await (window as any).electronAPI.restartBackend()
+          ElMessage.success('后端服务已重启，配置已生效')
+          await fetchSettings()
+        } catch (error) {
+          if (error !== 'cancel') {
+            ElMessage.error('自动重启失败，请尝试手动重启应用')
+          }
+        }
+      } else {
+        ElMessageBox.alert('配置已更改，请手动重启后端服务以使新路径或端口生效。', '保存成功', {
+          confirmButtonText: '我知道了',
+          type: 'success'
+        })
+      }
     }
     
     originalDataPath.value = settingsForm.value.storage.data_path
