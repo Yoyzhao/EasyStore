@@ -9,6 +9,7 @@ import { useMetadataStore } from '@/store/metadata'
 import { useSystemStore } from '@/store/system'
 import { storeToRefs } from 'pinia'
 import ImageCropper from '@/components/ImageCropper.vue'
+import { BACKEND_URL } from '@/api/request'
 
 const router = useRouter()
 const inventoryStore = useInventoryStore()
@@ -100,6 +101,12 @@ const handleImageChange = async (file: any) => {
 const handleCropSuccess = (res: any) => {
   form.image = res.url
   ElMessage.success('图片裁剪并上传成功')
+}
+
+const getImageUrl = (url?: string) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return `${BACKEND_URL}${url}`
 }
 
 const handleItemSelect = (id: number) => {
@@ -267,7 +274,7 @@ const handleCancel = () => {
                   :disabled="inboundMode === 'existing'"
                 >
                   <div v-if="form.image" class="w-32 h-32 border border-[var(--border-subtle)] rounded-xl overflow-hidden shadow-sm">
-                    <img :src="form.image" class="w-full h-full object-cover" />
+                    <img :src="getImageUrl(form.image)" class="w-full h-full object-cover" />
                   </div>
                   <div v-else class="w-32 h-32 border border-dashed border-[var(--border-subtle)] rounded-xl flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all" :class="{'bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60 hover:border-[var(--border-subtle)] hover:bg-gray-100': inboundMode === 'existing'}">
                       <el-icon class="text-2xl text-gray-400"><Plus /></el-icon>

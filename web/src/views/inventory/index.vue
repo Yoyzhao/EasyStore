@@ -10,6 +10,7 @@ import { useUserStore } from '@/store/user'
 import { useAppStore } from '@/store/app'
 import { storeToRefs } from 'pinia'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { BACKEND_URL } from '@/api/request'
 import type { FormInstance, FormRules } from 'element-plus'
 import * as XLSX from 'xlsx'
 import ImageCropper from '@/components/ImageCropper.vue'
@@ -225,6 +226,12 @@ const handleCropSuccess = (res: any) => {
   ElMessage.success('图片裁剪并上传成功')
 }
 
+const getImageUrl = (url?: string) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return `${BACKEND_URL}${url}`
+}
+
 const handleView = (row: any) => {
   currentItem.value = row
   detailVisible.value = true
@@ -392,9 +399,9 @@ const handleDelete = (row: any) => {
         <div class="flex justify-center p-4 bg-[var(--page-bg)] rounded-2xl border border-[var(--border-subtle)]">
           <el-image
             v-if="currentItem.image_url"
-            :src="currentItem.image_url"
+            :src="getImageUrl(currentItem.image_url)"
             class="w-56 h-56 rounded-xl shadow-md object-cover border-4 border-white dark:border-gray-800"
-            :preview-src-list="[currentItem.image_url]"
+            :preview-src-list="[getImageUrl(currentItem.image_url)]"
             fit="cover"
           />
           <div v-else class="w-56 h-56 bg-gray-100 dark:bg-gray-800 rounded-xl flex flex-col items-center justify-center text-gray-400 border border-dashed border-gray-300">

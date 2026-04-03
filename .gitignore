@@ -23,6 +23,9 @@ electron/node_modules/
 electron/dist/
 electron/release*/
 electron/web/
+electron/.stage/
+electron/out*/
+electron/build/
 
 # Server Build
 server/dist/
@@ -31,6 +34,7 @@ server/*.spec
 
 # Project
 build/
+.tmp/
 data/db/*.sqlite3
 data/app_logs/
 data/uploads/

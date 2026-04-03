@@ -1,9 +1,10 @@
+import copy
 import json
 import os
 from typing import Dict, Any
 from app.core.config import settings
 
-SETTINGS_FILE = os.path.join(settings.BASE_DIR, "data", "settings.json")
+SETTINGS_FILE = settings.SETTINGS_FILE
 
 DEFAULT_SETTINGS = {
     "upload": {
@@ -27,13 +28,13 @@ def get_settings() -> Dict[str, Any]:
         os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
             json.dump(DEFAULT_SETTINGS, f, indent=4)
+        settings.ensure_runtime_directories()
         return DEFAULT_SETTINGS
     
     try:
         with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-            # Merge with default settings to ensure all keys exist
-            merged = DEFAULT_SETTINGS.copy()
+            merged = copy.deepcopy(DEFAULT_SETTINGS)
             if "upload" in data:
                 merged["upload"].update(data["upload"])
             if "access" in data:
@@ -42,8 +43,10 @@ def get_settings() -> Dict[str, Any]:
                 merged["storage"].update(data["storage"])
             if "general" in data:
                 merged["general"].update(data["general"])
+            settings.ensure_runtime_directories()
             return merged
     except Exception:
+        settings.ensure_runtime_directories()
         return DEFAULT_SETTINGS
 
 def update_settings(new_settings: Dict[str, Any]) -> Dict[str, Any]:
@@ -60,5 +63,6 @@ def update_settings(new_settings: Dict[str, Any]) -> Dict[str, Any]:
     os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
     with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
         json.dump(current_settings, f, indent=4)
+    settings.ensure_runtime_directories()
         
     return current_settings

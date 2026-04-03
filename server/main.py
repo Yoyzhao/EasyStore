@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from app.core.config import settings
+from app.core.system_settings import get_settings
 from app.api.api import api_router
 from app.db.init_db import init_db
 from app.db.session import SessionLocal
@@ -25,13 +26,14 @@ app.add_middleware(
 # Initialize DB
 @app.on_event("startup")
 def on_startup():
+    get_settings()
+    settings.ensure_runtime_directories()
     db = SessionLocal()
     try:
         init_db(db)
     finally:
         db.close()
     
-    # Ensure upload directory exists
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)

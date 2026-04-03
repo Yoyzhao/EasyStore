@@ -1,0 +1,26 @@
+{
+  "name": "easystore-electron",
+  "productName": "EasyStore",
+  "version": "1.0.0",
+  "author": "EasyStore",
+  "description": "EasyStore Windows client",
+  "main": "main/index.js",
+  "scripts": {
+    "build:icon": "node ./scripts/generate-icon.mjs",
+    "start": "npm run build:icon && electron-forge start",
+    "package": "npm run build:icon && electron-forge package",
+    "make": "npm run build:icon && electron-forge make"
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.1"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.8.1",
+    "@electron-forge/maker-squirrel": "^7.8.1",
+    "@electron-forge/maker-zip": "^7.8.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
+    "electron": "^36.3.1",
+    "png-to-ico": "^2.1.8",
+    "sharp": "^0.34.4"
+  }
+}

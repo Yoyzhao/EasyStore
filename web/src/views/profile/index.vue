@@ -3,7 +3,7 @@ import { ref, reactive, computed } from 'vue'
 import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
 import { User, Key, Lock, Camera } from '@element-plus/icons-vue'
-import request from '@/api/request'
+import request, { BACKEND_URL } from '@/api/request'
 import ImageCropper from '@/components/ImageCropper.vue'
 
 const userStore = useUserStore()
@@ -11,16 +11,13 @@ const userStore = useUserStore()
 // 裁剪相关
 const imageCropperRef = ref()
 
-// 基础 API 地址，用于拼接头像 URL
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-
 // 计算头像完整 URL
 const avatarUrl = computed(() => {
   if (userStore.userInfo.avatar) {
     if (userStore.userInfo.avatar.startsWith('http')) {
       return userStore.userInfo.avatar
     }
-    return `${apiBaseUrl}${userStore.userInfo.avatar}`
+    return `${BACKEND_URL}${userStore.userInfo.avatar}`
   }
   return ''
 })

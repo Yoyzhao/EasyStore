@@ -3,8 +3,24 @@ import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
 
 const isElectron = window.navigator.userAgent.toLowerCase().includes('electron')
+
+// 只有在 Electron 环境下才尝试从 URL 获取动态端口，网页版保持原来的 VITE_API_URL 逻辑
+let dynamicPort = '8000'
+if (isElectron) {
+  const urlParams = new URLSearchParams(window.location.search)
+  dynamicPort = urlParams.get('port') || '8000'
+}
+
+export const BACKEND_URL = isElectron 
+  ? `http://127.0.0.1:${dynamicPort}` 
+  : (import.meta.env.VITE_API_URL || '')
+
+export const API_BASE_URL = isElectron
+  ? `${BACKEND_URL}/api/v1`
+  : (import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1` : '/api/v1')
+
 const request = axios.create({
-  baseURL: isElectron ? 'http://127.0.0.1:8000/api/v1' : '/api/v1',
+  baseURL: API_BASE_URL,
   timeout: 10000
 })
 

@@ -55,9 +55,12 @@ const resolvePath = (basePath: string, childPath?: string) => {
   <div class="h-full transition-all duration-300 flex flex-col overflow-hidden bg-transparent">
     <!-- 顶部 Logo 区域 -->
     <div :class="[appStore.sidebarCollapsed ? 'px-2 justify-center' : 'px-6', 'h-20 flex items-center shrink-0 gap-3 border-b border-[var(--border-subtle)] transition-all duration-300']">
-      <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-        <el-icon :size="24" class="text-blue-500"><Box /></el-icon>
-      </div>
+      <svg class="w-10 h-10 flex-shrink-0" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+        <path d="M716.8 0H307.2C137.5488 0 0 137.5488 0 307.2v409.6c0 169.6512 137.5488 307.2 307.2 307.2h409.6c169.6512 0 307.2-137.5488 307.2-307.2V307.2c0-169.6512-137.5488-307.2-307.2-307.2z" fill="#FFEFCF"></path>
+        <path d="M326.144 271.5136a25.6 25.6 0 0 1 23.552-15.5136H460.8a25.6 25.6 0 0 1-25.6 25.6v128a25.6 25.6 0 0 1-25.6 25.6h-165.9648a25.6 25.6 0 0 1-23.552-35.6864l54.8608-128zM537.6 281.6a25.6 25.6 0 0 1 25.6-25.6h111.104a25.6 25.6 0 0 1 23.552 15.5136l54.8608 128a25.6 25.6 0 0 1-23.552 35.6864H563.2a25.6 25.6 0 0 1-25.6-25.6v-128z" fill="#FEBF60"></path>
+        <path d="M307.2 460.8h409.6a51.2 51.2 0 0 1 51.2 51.2v204.8a51.2 51.2 0 0 1-51.2 51.2H307.2a51.2 51.2 0 0 1-51.2-51.2v-204.8a51.2 51.2 0 0 1 51.2-51.2z m249.2416 178.9952a80.896 80.896 0 1 0-19.072 19.072l46.848 46.8224a13.4912 13.4912 0 1 0 19.0464-19.072l-46.8224-46.848z m-12.032-46.8992a53.9392 53.9392 0 1 1-107.8528 0 53.9392 53.9392 0 0 1 107.8784 0z" fill="#FA8A0C"></path>
+        <path d="M460.8 576a12.8 12.8 0 0 1 25.6 0 12.8 12.8 0 0 1-25.6 0z" fill="#FFFFFF"></path>
+      </svg>
       <h1 
         v-show="!appStore.sidebarCollapsed"
         class="text-2xl font-bold truncate transition-opacity duration-300 font-display text-[var(--text-main)]" 
