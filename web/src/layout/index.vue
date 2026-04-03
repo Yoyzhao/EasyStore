@@ -5,6 +5,7 @@ import { useAppStore } from '@/store/app'
 import Sidebar from './components/Sidebar.vue'
 import Navbar from './components/Navbar.vue'
 import AppMain from './components/AppMain.vue'
+import AppFooter from './components/AppFooter.vue'
 
 const appStore = useAppStore()
 const route = useRoute()
@@ -67,6 +68,13 @@ watch(() => route.path, () => {
       <!-- 主要内容区域 -->
       <div class="flex-1 overflow-y-auto px-0 md:px-6 py-4 md:py-6">
         <AppMain />
+      </div>
+
+      <!-- 页脚 -->
+      <div class="px-0 md:px-6 pb-2 flex-shrink-0">
+        <div class="max-w-7xl mx-auto w-full">
+          <AppFooter />
+        </div>
       </div>
     </div>
   </div>

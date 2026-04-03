@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { User, Lock, Box } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import AppFooter from '@/layout/components/AppFooter.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -43,7 +44,7 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex relative overflow-hidden bg-[var(--bg-main)]">
+  <div class="min-h-screen flex flex-col relative overflow-hidden bg-[var(--bg-main)]">
     <!-- Background Decoration -->
     <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none"></div>
     <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 blur-[100px] pointer-events-none"></div>
@@ -52,9 +53,9 @@ const handleLogin = async () => {
       <div class="sm:mx-auto sm:w-full sm:max-w-md">
         <!-- Logo Area -->
         <div class="flex justify-center mb-8">
-          <div class="w-20 h-20 rounded-[1.25rem] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 transform transition-transform hover:scale-105 duration-300 relative group">
-            <div class="absolute inset-0 bg-white/20 rounded-[1.25rem] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <el-icon class="text-4xl text-white drop-shadow-md"><Box /></el-icon>
+          <div class="w-20 h-20 rounded-[1.25rem] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 transform transition-transform hover:scale-105 duration-300 relative group overflow-hidden">
+            <div class="absolute inset-0 bg-white/20 rounded-[1.25rem] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+            <img src="/icon1.svg" alt="Logo" class="w-12 h-12 relative z-0 drop-shadow-md select-none" />
           </div>
         </div>
         <h2 class="mt-2 text-center text-3xl font-extrabold text-[var(--text-main)] font-display tracking-tight">
@@ -115,6 +116,11 @@ const handleLogin = async () => {
           </el-form>
         </div>
       </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="relative z-10 pb-4">
+      <AppFooter />
     </div>
   </div>
 </template>
