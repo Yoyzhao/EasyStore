@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Download, Upload, CopyDocument, FolderAdd } from '@element-plus/icons-vue'
 import request from '@/api/request'
 import { useAppStore } from '@/store/app'
 import { formatToUTC8 } from '@/utils/date'
@@ -19,7 +20,9 @@ const settingsForm = ref({
     allow_external_ip: false
   },
   storage: {
-    data_path: 'data'
+    data_path: 'data',
+    current_abs_path: '',
+    migration_action: 'none'
   },
   general: {
     project_name: 'EasyStore',
@@ -31,12 +34,18 @@ const extensionOptions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'do
 
 const loadingSettings = ref(false)
 const savingSettings = ref(false)
+const originalDataPath = ref('')
+const originalPort = ref(8000)
+const migrationDialogVisible = ref(false)
+const migrationAction = ref('migrate') // 'migrate' or 'create_new'
 
 const fetchSettings = async () => {
   loadingSettings.value = true
   try {
     const res: any = await request.get('/system/settings')
     settingsForm.value = res
+    originalDataPath.value = res.storage.data_path
+    originalPort.value = res.general.port
   } catch (error: any) {
     ElMessage.error(error.response?.data?.detail || '获取设置失败')
   } finally {
@@ -48,17 +57,45 @@ const saveSettings = async () => {
   if (!settingsFormRef.value) return
   await settingsFormRef.value.validate(async (valid: boolean) => {
     if (valid) {
-      savingSettings.value = true
-      try {
-        await request.put('/system/settings', settingsForm.value)
-        ElMessage.success('设置保存成功')
-      } catch (error: any) {
-        ElMessage.error(error.response?.data?.detail || '保存设置失败')
-      } finally {
-        savingSettings.value = false
+      // 检查路径是否改变
+      if (settingsForm.value.storage.data_path !== originalDataPath.value) {
+        migrationDialogVisible.value = true
+        return
       }
+      
+      await performSave()
     }
   })
+}
+
+const confirmSaveWithMigration = async () => {
+  settingsForm.value.storage.migration_action = migrationAction.value
+  await performSave()
+  migrationDialogVisible.value = false
+}
+
+const performSave = async () => {
+  savingSettings.value = true
+  try {
+    await request.put('/system/settings', settingsForm.value)
+    ElMessage.success('设置保存成功')
+    
+    // 如果修改了端口或路径，提醒重启
+    if (settingsForm.value.general.port !== originalPort.value || 
+        settingsForm.value.storage.data_path !== originalDataPath.value) {
+      ElMessageBox.alert('配置已更改，请手动重启后端服务以使新路径或端口生效。', '保存成功', {
+        confirmButtonText: '我知道了',
+        type: 'success'
+      })
+    }
+    
+    originalDataPath.value = settingsForm.value.storage.data_path
+    originalPort.value = settingsForm.value.general.port
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.detail || '保存设置失败')
+  } finally {
+    savingSettings.value = false
+  }
 }
 
 // ====== 备份与恢复 ======
@@ -258,11 +295,15 @@ onMounted(() => {
                 <el-form-item label="数据保存路径" prop="storage.data_path" class="font-medium">
                   <el-input
                     v-model="settingsForm.storage.data_path"
-                    placeholder="请输入保存路径，支持相对路径(如 data)或绝对路径(如 D:\EasyStoreData)"
+                    :placeholder="`当前: ${settingsForm.storage.current_abs_path || 'data'}`"
                     class="!w-full max-w-md !rounded-xl"
                   />
                   <div class="w-full text-xs mt-2 text-[var(--text-muted)] font-normal">
-                    控制数据库文件和上传文件的保存根路径。支持绝对路径。修改后需手动将原数据文件夹(默认 data/) 移动到新位置并重启系统。
+                    控制数据库文件和上传文件的保存根路径。支持相对路径 (如 data) 或绝对路径 (如 D:\EasyStoreData)。
+                    <span v-if="settingsForm.storage.current_abs_path" class="text-blue-500 font-medium">
+                      当前实际路径: {{ settingsForm.storage.current_abs_path }}
+                    </span>
+                    <br/>修改后需手动将原数据文件夹移动到新位置并重启系统。
                   </div>
                 </el-form-item>
 
@@ -343,6 +384,57 @@ onMounted(() => {
       </div>
     </div>
   </div>
+
+  <!-- 数据迁移选择弹窗 -->
+  <el-dialog
+    v-model="migrationDialogVisible"
+    title="数据存储路径变更"
+    width="500px"
+    append-to-body
+    class="!rounded-2xl"
+  >
+    <div class="py-2">
+      <p class="text-[var(--text-main)] mb-4 font-medium">您更改了数据保存路径，请选择处理现有数据的方式：</p>
+      
+      <div class="space-y-4">
+        <div 
+          class="border rounded-xl p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-all group"
+          :class="migrationAction === 'migrate' ? 'border-blue-500 bg-blue-50/50 shadow-sm shadow-blue-500/10' : 'border-[var(--border-subtle)]'"
+          @click="migrationAction = 'migrate'"
+        >
+          <div class="flex items-center gap-2 font-bold text-blue-600 mb-1">
+            <el-icon><CopyDocument /></el-icon>
+            迁移现有数据
+          </div>
+          <p class="text-xs text-[var(--text-muted)] leading-relaxed">
+            将当前路径 ({{ settingsForm.storage.current_abs_path }}) 下的所有数据库和文件自动复制到新路径。
+          </p>
+        </div>
+
+        <div 
+          class="border rounded-xl p-4 cursor-pointer hover:border-orange-500 hover:bg-orange-50/50 transition-all group"
+          :class="migrationAction === 'create_new' ? 'border-orange-500 bg-orange-50/50 shadow-sm shadow-orange-500/10' : 'border-[var(--border-subtle)]'"
+          @click="migrationAction = 'create_new'"
+        >
+          <div class="flex items-center gap-2 font-bold text-orange-600 mb-1">
+            <el-icon><FolderAdd /></el-icon>
+            仅更改路径 (新建目录)
+          </div>
+          <p class="text-xs text-[var(--text-muted)] leading-relaxed">
+            在新路径创建一个空的存储目录。原有数据将保留在原处，但系统不再使用。
+          </p>
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <div class="flex gap-3 justify-end">
+        <el-button @click="migrationDialogVisible = false" class="!rounded-xl">取消</el-button>
+        <el-button type="primary" @click="confirmSaveWithMigration" :loading="savingSettings" class="!rounded-xl shadow-sm shadow-blue-500/20 px-6">
+          确认并保存
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>

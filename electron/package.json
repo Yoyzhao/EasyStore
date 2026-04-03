@@ -12,6 +12,7 @@
     "make": "npm run build:icon && electron-forge make"
   },
   "dependencies": {
+    "dotenv": "^17.4.0",
     "electron-squirrel-startup": "^1.0.1"
   },
   "devDependencies": {

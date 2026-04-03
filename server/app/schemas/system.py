@@ -10,6 +10,8 @@ class AccessSettings(BaseModel):
 
 class StorageSettings(BaseModel):
     data_path: str = "data"
+    current_abs_path: str = ""
+    migration_action: str = "none" # none, migrate, create_new
 
 class GeneralSettings(BaseModel):
     project_name: str = "EasyStore"

@@ -12,7 +12,8 @@ module.exports = {
     out: electronOutDir,
     extraResource: [
       path.join(__dirname, '.stage', 'backend'),
-      path.join(__dirname, '.stage', 'renderer')
+      path.join(__dirname, '.stage', 'renderer'),
+      path.join(__dirname, '.env.example')
     ],
     win32metadata: {
       CompanyName: 'EasyStore',
@@ -27,8 +28,7 @@ module.exports = {
       config: {
         name: 'easystore',
         setupExe: 'EasyStoreSetup.exe',
-        setupIcon: path.join(__dirname, 'build', 'icon.ico'),
-        loadingGif: null
+        setupIcon: path.join(__dirname, 'build', 'icon.ico')
       }
     },
     {

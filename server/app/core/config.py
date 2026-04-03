@@ -10,10 +10,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "supersecretkey_easy_store_2024_00001"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
     
-    # 显式定义 .env 中可能存在的变量
-    EASYSTORE_PORT: int = 8000
-    EASYSTORE_DATA_PATH: str = "data"
-    EASYSTORE_APP_HOME: str = "."
+    # 显式定义 .env 中可能存在的变量，设为 None 以优先使用 settings.json 中的动态配置
+    EASYSTORE_PORT: int | None = None
+    EASYSTORE_DATA_PATH: str | None = None
+    EASYSTORE_APP_HOME: str | None = None
     
     class Config:
         env_file = ".env"
@@ -33,12 +33,12 @@ class Settings(BaseSettings):
     def APP_HOME(self) -> str:
         if self.EASYSTORE_APP_HOME:
             os.makedirs(self.EASYSTORE_APP_HOME, exist_ok=True)
-            return self.EASYSTORE_APP_HOME
+            return os.path.abspath(self.EASYSTORE_APP_HOME)
         return self.BASE_DIR
 
     @property
     def SETTINGS_FILE(self) -> str:
-        settings_file = os.path.join(self.APP_HOME, "data", "settings.json")
+        settings_file = os.path.normpath(os.path.join(self.APP_HOME, "data", "settings.json"))
         os.makedirs(os.path.dirname(settings_file), exist_ok=True)
         return settings_file
 
@@ -64,6 +64,7 @@ class Settings(BaseSettings):
             resolved_path = path
         else:
             resolved_path = os.path.join(self.APP_HOME, path)
+        resolved_path = os.path.abspath(os.path.normpath(resolved_path))
         os.makedirs(resolved_path, exist_ok=True)
         return resolved_path
 

@@ -5,6 +5,49 @@ const http = require('http')
 const path = require('path')
 const netModule = require('net')
 
+// 加载 .env 配置
+function loadEnv() {
+  const dotenv = require('dotenv')
+  
+  // 定义搜索路径顺序（优先级从高到低）
+  const searchPaths = []
+  
+  if (app.isPackaged) {
+    const exePath = app.getPath('exe')
+    const exeDir = path.dirname(exePath)
+    
+    // 调试日志：输出当前搜索路径
+    console.log(`Executable Path: ${exePath}`)
+    console.log(`Executable Directory: ${exeDir}`)
+
+    // 1. 程序同级目录 (app-1.0.0/EasyStore.exe 旁边)
+    searchPaths.push(path.join(exeDir, '.env'))
+    
+    // 2. 安装根目录 (Squirrel: Local/easystore 目录下)
+    // 通常 exe 在 app-1.0.0 目录下，向上退一级就是安装根目录
+    searchPaths.push(path.join(exeDir, '..', '.env'))
+    
+    // 3. 用户数据目录 (AppData/Roaming/easystore 目录下)
+    searchPaths.push(path.join(app.getPath('userData'), '.env'))
+    
+    // 4. 资源目录 (app-1.0.0/resources 目录下)
+    searchPaths.push(path.join(process.resourcesPath, '.env'))
+  } else {
+    // 开发环境下
+    searchPaths.push(path.join(__dirname, '..', '.env'))
+  }
+
+  for (const p of searchPaths) {
+    if (fs.existsSync(p)) {
+      dotenv.config({ path: p })
+      console.log(`Loaded env from: ${p}`)
+      break // 找到第一个就停止
+    }
+  }
+}
+
+loadEnv()
+
 if (require('electron-squirrel-startup')) {
   app.quit()
 }
@@ -36,6 +79,14 @@ let isBackendReady = false
 let backendLogs = []
 
 function getAppHome() {
+  // 优先从环境变量读取
+  if (process.env.EASYSTORE_APP_HOME) {
+    const customHome = path.isAbsolute(process.env.EASYSTORE_APP_HOME)
+      ? process.env.EASYSTORE_APP_HOME
+      : path.join(process.resourcesPath, process.env.EASYSTORE_APP_HOME)
+    fs.mkdirSync(customHome, { recursive: true })
+    return customHome
+  }
   const appHome = app.getPath('userData')
   fs.mkdirSync(appHome, { recursive: true })
   return appHome
@@ -283,7 +334,13 @@ function registerIpcHandlers() {
 }
 
 async function bootstrap() {
-  PORT = await findAvailablePort(8000)
+  // 如果 .env 中指定了固定端口，则使用它，否则寻找可用端口
+  if (process.env.EASYSTORE_PORT) {
+    PORT = parseInt(process.env.EASYSTORE_PORT, 10)
+  } else {
+    PORT = await findAvailablePort(8000)
+  }
+  
   loadLoadingScreen()
   startBackend()
   registerIpcHandlers()
@@ -299,10 +356,8 @@ async function bootstrap() {
   }
 
   // 使用 URL 对象构造带参数的路径
-  const rendererUrl = new URL(`file://${rendererEntry}`)
-  rendererUrl.searchParams.set('port', PORT.toString())
-
-  await mainWindow.loadURL(rendererUrl.toString())
+  const rendererUrl = `file:///${rendererEntry.replace(/\\/g, '/')}`
+  mainWindow.loadURL(`${rendererUrl}?port=${PORT}`)
   mainWindow.show()
 }
 
