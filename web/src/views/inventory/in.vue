@@ -290,7 +290,7 @@ const handleCancel = () => {
           </el-form-item>
 
           <el-form-item class="mt-8">
-            <el-button type="primary" :loading="loading" @click="handleSubmit" class="!rounded-xl !h-11 font-medium shadow-sm shadow-blue-500/20 px-8 text-base">确认入库</el-button>
+            <el-button v-if="userStore.userInfo.role === 'admin'" type="primary" :loading="loading" @click="handleSubmit" class="!rounded-xl !h-11 font-medium shadow-sm shadow-blue-500/20 px-8 text-base">确认入库</el-button>
             <el-button @click="handleCancel" class="!rounded-xl !h-11 font-medium px-8 text-base hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent">取消</el-button>
           </el-form-item>
         </el-form>

@@ -4,10 +4,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Download, Upload, CopyDocument, FolderAdd } from '@element-plus/icons-vue'
 import request from '@/api/request'
 import { useAppStore } from '@/store/app'
+import { useUserStore } from '@/store/user'
 import { formatToUTC8 } from '@/utils/date'
 
 const activeTab = ref('general')
 const appStore = useAppStore()
+const userStore = useUserStore()
 
 // ====== 系统设置 ======
 const settingsFormRef = ref()
@@ -332,7 +334,7 @@ onMounted(() => {
                 </el-form-item>
 
                 <el-form-item class="mt-10">
-                  <el-button type="primary" @click="saveSettings" :loading="savingSettings" class="!rounded-xl !h-11 font-medium shadow-sm shadow-blue-500/20 px-8 text-base">
+                  <el-button v-if="userStore.userInfo.role === 'admin'" type="primary" @click="saveSettings" :loading="savingSettings" class="!rounded-xl !h-11 font-medium shadow-sm shadow-blue-500/20 px-8 text-base">
                     保存设置
                   </el-button>
                   <el-button @click="fetchSettings" class="!rounded-xl !h-11 font-medium px-8 text-base hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent">重置修改</el-button>
@@ -358,6 +360,7 @@ onMounted(() => {
                     将当前的数据库文件、系统配置以及所有上传的图片附件打包下载到本地。建议定期备份以防数据丢失。
                   </p>
                   <el-button 
+                    v-if="userStore.userInfo.role === 'admin'"
                     type="primary" 
                     size="large" 
                     class="w-full !rounded-xl !h-12 font-medium shadow-sm shadow-blue-500/20 text-base" 
@@ -382,6 +385,7 @@ onMounted(() => {
                   </p>
                   
                   <el-upload
+                    v-if="userStore.userInfo.role === 'admin'"
                     action="#"
                     :show-file-list="false"
                     :before-upload="beforeRestoreUpload"

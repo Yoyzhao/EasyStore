@@ -2,11 +2,13 @@
 import { reactive, computed, onMounted, ref } from 'vue'
 import { Search, Download } from '@element-plus/icons-vue'
 import { useInventoryStore } from '@/store/inventory'
+import { useUserStore } from '@/store/user'
 import { storeToRefs } from 'pinia'
 import * as XLSX from 'xlsx'
 import { formatToUTC8 } from '@/utils/date'
 
 const inventoryStore = useInventoryStore()
+const userStore = useUserStore()
 const { totalRecords } = storeToRefs(inventoryStore)
 
 const searchForm = reactive({
@@ -155,7 +157,7 @@ const handleExport = () => {
           <div class="flex items-center gap-2">
             <el-button type="primary" @click="handleSearch" class="!rounded-xl !h-10 font-medium px-6">查询</el-button>
             <el-button @click="handleReset" class="!rounded-xl !h-10 font-medium px-6 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent">重置</el-button>
-            <el-button type="success" :icon="Download" @click="handleExport" class="!rounded-xl !h-10 font-medium shadow-sm shadow-green-500/20 px-6">导出 Excel</el-button>
+            <el-button v-if="userStore.userInfo.role === 'admin'" type="success" :icon="Download" @click="handleExport" class="!rounded-xl !h-10 font-medium shadow-sm shadow-green-500/20 px-6">导出 Excel</el-button>
           </div>
         </el-form-item>
       </el-form>

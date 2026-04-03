@@ -4,11 +4,13 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useInventoryStore } from '@/store/inventory'
 import { useMetadataStore } from '@/store/metadata'
+import { useUserStore } from '@/store/user'
 import { storeToRefs } from 'pinia'
 
 const router = useRouter()
 const inventoryStore = useInventoryStore()
 const metadataStore = useMetadataStore()
+const userStore = useUserStore()
 
 const { usages } = storeToRefs(metadataStore)
 
@@ -23,7 +25,7 @@ const form = reactive({
   usage: '',
   recipient: '',
   remark: '',
-  operator: 'Admin' // Should come from user store
+  operator: userStore.userInfo.username || 'Admin'
 })
 
 const rules = {
@@ -173,7 +175,7 @@ const handleCancel = () => {
           </el-form-item>
 
           <el-form-item class="mt-8">
-            <el-button type="primary" :loading="loading" @click="handleSubmit" class="!rounded-xl !h-11 font-medium shadow-sm shadow-blue-500/20 px-8 text-base">确认出库</el-button>
+            <el-button v-if="userStore.userInfo.role === 'admin'" type="primary" :loading="loading" @click="handleSubmit" class="!rounded-xl !h-11 font-medium shadow-sm shadow-blue-500/20 px-8 text-base">确认出库</el-button>
             <el-button @click="handleCancel" class="!rounded-xl !h-11 font-medium px-8 text-base hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent">取消</el-button>
           </el-form-item>
         </el-form>

@@ -8,11 +8,18 @@ export const formatToUTC8 = (dateStr: string | Date): string => {
   
   let date: Date;
   if (typeof dateStr === 'string') {
-    // If the backend returns a naive string (no Z, no offset),
-    // and we know it's UTC+8, we should treat it as such.
-    // However, if we've unified the backend to return strings with offsets,
-    // new Date(dateStr) will parse it correctly as a moment in time.
-    date = new Date(dateStr);
+    // Handle both 'T' and space as separators for naive datetime strings
+    const isNaive = (dateStr.includes('T') || dateStr.includes(' ')) && 
+                   !dateStr.includes('Z') && 
+                   !dateStr.includes('+');
+    
+    if (isNaive) {
+      // Standardize to ISO format (T separator) if it has a space
+      const normalizedStr = dateStr.replace(' ', 'T');
+      date = new Date(`${normalizedStr}+08:00`);
+    } else {
+      date = new Date(dateStr);
+    }
   } else {
     date = dateStr;
   }

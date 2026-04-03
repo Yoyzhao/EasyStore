@@ -267,8 +267,8 @@ const handleDelete = (row: any) => {
         <p class="text-sm text-[var(--text-muted)] mt-1">管理您的所有物品库存、入库与出库操作</p>
       </div>
       <div class="flex items-center gap-3 w-full sm:w-auto relative z-10">
-        <el-button type="primary" :icon="Plus" @click="handleInbound" class="flex-1 sm:flex-none !rounded-xl !h-10 font-medium shadow-sm shadow-blue-500/20">入库</el-button>
-        <el-button type="warning" :icon="Plus" @click="handleOutbound" class="flex-1 sm:flex-none !rounded-xl !h-10 font-medium shadow-sm shadow-orange-500/20">出库</el-button>
+        <el-button v-if="userStore.userInfo.role === 'admin'" type="primary" :icon="Plus" @click="handleInbound" class="flex-1 sm:flex-none !rounded-xl !h-10 font-medium shadow-sm shadow-blue-500/20">入库</el-button>
+        <el-button v-if="userStore.userInfo.role === 'admin'" type="warning" :icon="Plus" @click="handleOutbound" class="flex-1 sm:flex-none !rounded-xl !h-10 font-medium shadow-sm shadow-orange-500/20">出库</el-button>
       </div>
     </div>
 
@@ -291,7 +291,7 @@ const handleDelete = (row: any) => {
           <div class="flex items-center gap-2">
             <el-button type="primary" @click="handleSearch" class="!rounded-xl !h-10 font-medium px-6">查询</el-button>
             <el-button @click="handleReset" class="!rounded-xl !h-10 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent px-6">重置</el-button>
-            <el-button type="success" :icon="Download" @click="handleExport" class="!rounded-xl !h-10 font-medium shadow-sm shadow-green-500/20 px-6">导出 Excel</el-button>
+            <el-button v-if="userStore.userInfo.role === 'admin'" type="success" :icon="Download" @click="handleExport" class="!rounded-xl !h-10 font-medium shadow-sm shadow-green-500/20 px-6">导出 Excel</el-button>
           </div>
         </el-form-item>
       </el-form>
@@ -350,22 +350,24 @@ const handleDelete = (row: any) => {
         <el-table-column prop="updated_at" label="最后更新时间" width="180">
           <template #default="{ row }">
             <span class="text-[var(--text-muted)] text-sm">
-              {{ row.updated_at ? new Date(row.updated_at.endsWith('Z') || row.updated_at.includes('+') ? row.updated_at : row.updated_at + 'Z').toLocaleString('zh-CN', { hour12: false }) : '-' }}
+              {{ row.updated_at ? formatToUTC8(row.updated_at) : '-' }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="140" fixed="right" align="center">
+        <el-table-column label="操作" :width="userStore.userInfo.role === 'admin' ? 140 : 80" fixed="right" align="center">
           <template #default="scope">
             <div class="flex items-center justify-center gap-2">
               <el-tooltip content="详情" placement="top">
                 <el-button circle size="small" :icon="View" @click="handleView(scope.row)" class="!bg-gray-100 hover:!bg-gray-200 dark:!bg-gray-800 dark:hover:!bg-gray-700 !border-transparent text-gray-600 dark:text-gray-300" />
               </el-tooltip>
-              <el-tooltip content="编辑" placement="top">
-                <el-button circle size="small" type="primary" :icon="Edit" @click="handleEdit(scope.row)" class="!bg-blue-50 hover:!bg-blue-100 dark:!bg-blue-900/30 dark:hover:!bg-blue-900/50 !border-transparent !text-blue-500" />
-              </el-tooltip>
-              <el-tooltip content="删除" placement="top">
-                <el-button circle size="small" type="danger" :icon="Delete" @click="handleDelete(scope.row)" class="!bg-red-50 hover:!bg-red-100 dark:!bg-red-900/30 dark:hover:!bg-red-900/50 !border-transparent !text-red-500" />
-              </el-tooltip>
+              <template v-if="userStore.userInfo.role === 'admin'">
+                <el-tooltip content="编辑" placement="top">
+                  <el-button circle size="small" type="primary" :icon="Edit" @click="handleEdit(scope.row)" class="!bg-blue-50 hover:!bg-blue-100 dark:!bg-blue-900/30 dark:hover:!bg-blue-900/50 !border-transparent !text-blue-500" />
+                </el-tooltip>
+                <el-tooltip content="删除" placement="top">
+                  <el-button circle size="small" type="danger" :icon="Delete" @click="handleDelete(scope.row)" class="!bg-red-50 hover:!bg-red-100 dark:!bg-red-900/30 dark:hover:!bg-red-900/50 !border-transparent !text-red-500" />
+                </el-tooltip>
+              </template>
             </div>
           </template>
         </el-table-column>

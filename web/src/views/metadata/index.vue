@@ -3,10 +3,12 @@ import { ref, onMounted, computed, reactive } from 'vue'
 import { Plus, Delete, Edit, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useMetadataStore } from '@/store/metadata'
+import { useUserStore } from '@/store/user'
 import { storeToRefs } from 'pinia'
 
 const activeTab = ref('category')
 const metadataStore = useMetadataStore()
+const userStore = useUserStore()
 
 const searchForm = reactive({
   keyword: ''
@@ -158,7 +160,7 @@ const handleSubmit = async () => {
           <div class="flex items-center gap-2">
             <el-button type="primary" @click="handleSearch" class="!rounded-xl !h-10 font-medium px-6">查询</el-button>
             <el-button @click="handleReset" class="!rounded-xl !h-10 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent px-6">重置</el-button>
-            <el-button type="success" :icon="Plus" @click="handleAdd(activeTab)" class="!rounded-xl !h-10 font-medium shadow-sm shadow-green-500/20 px-6">新增</el-button>
+            <el-button v-if="userStore.userInfo.role === 'admin'" type="success" :icon="Plus" @click="handleAdd(activeTab)" class="!rounded-xl !h-10 font-medium shadow-sm shadow-green-500/20 px-6">新增</el-button>
           </div>
         </el-form-item>
       </el-form>
@@ -184,7 +186,7 @@ const handleSubmit = async () => {
                 <span class="text-[var(--text-muted)]">{{ row.description || '-' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="100" align="right">
+            <el-table-column v-if="userStore.userInfo.role === 'admin'" label="操作" width="100" align="right">
               <template #default="scope">
                 <div class="flex items-center justify-end gap-2">
                   <el-tooltip content="编辑" placement="top">
@@ -217,7 +219,7 @@ const handleSubmit = async () => {
                 <span class="text-[var(--text-muted)]">{{ row.description || '-' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="100" align="right">
+            <el-table-column v-if="userStore.userInfo.role === 'admin'" label="操作" width="100" align="right">
               <template #default="scope">
                 <div class="flex items-center justify-end gap-2">
                   <el-tooltip content="编辑" placement="top">
@@ -250,7 +252,7 @@ const handleSubmit = async () => {
                 <span class="text-[var(--text-muted)]">{{ row.description || '-' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="100" align="right">
+            <el-table-column v-if="userStore.userInfo.role === 'admin'" label="操作" width="100" align="right">
               <template #default="scope">
                 <div class="flex items-center justify-end gap-2">
                   <el-tooltip content="编辑" placement="top">
@@ -283,7 +285,7 @@ const handleSubmit = async () => {
                 <span class="text-[var(--text-muted)]">{{ row.description || '-' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="100" align="right">
+            <el-table-column v-if="userStore.userInfo.role === 'admin'" label="操作" width="100" align="right">
               <template #default="scope">
                 <div class="flex items-center justify-end gap-2">
                   <el-tooltip content="编辑" placement="top">

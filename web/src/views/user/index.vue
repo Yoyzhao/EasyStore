@@ -4,10 +4,12 @@ import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUsersStore } from '@/store/users'
 import { useAppStore } from '@/store/app'
+import { useUserStore } from '@/store/user'
 import { formatToUTC8 } from '@/utils/date'
 
 const usersStore = useUsersStore()
 const appStore = useAppStore()
+const userStore = useUserStore()
 
 const page = ref(1)
 const pageSize = ref(10)
@@ -144,7 +146,7 @@ const handleSubmit = async () => {
         <h1 class="text-2xl font-bold text-[var(--text-main)] font-display tracking-tight">用户管理</h1>
         <p class="text-sm text-[var(--text-muted)] mt-1">管理系统用户的权限与状态</p>
       </div>
-      <el-button type="primary" :icon="Plus" @click="handleAdd" class="relative z-10 w-full sm:w-auto !rounded-xl !h-10 shadow-sm shadow-blue-500/20 font-medium px-6">新增用户</el-button>
+      <el-button v-if="userStore.userInfo.role === 'admin'" type="primary" :icon="Plus" @click="handleAdd" class="relative z-10 w-full sm:w-auto !rounded-xl !h-10 shadow-sm shadow-blue-500/20 font-medium px-6">新增用户</el-button>
     </div>
 
     <div class="flex-1 bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--border-subtle)] flex flex-col min-h-0">
@@ -180,7 +182,7 @@ const handleSubmit = async () => {
             <span class="text-[var(--text-muted)]">{{ formatDate(row.created_at) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right" align="center">
+        <el-table-column v-if="userStore.userInfo.role === 'admin'" label="操作" width="100" fixed="right" align="center">
           <template #default="scope">
             <div class="flex items-center justify-center gap-2">
               <el-tooltip content="编辑" placement="top" :show-after="300">
